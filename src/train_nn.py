@@ -36,7 +36,7 @@ print(f"historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}")
 # ---- 2/3/4. scenáre + označenie ------------------------------------------------------------
 def make(n):
     city = rng.integers(0, 2, n)                     # 0 = Španielsko/Málaga, 1 = Slovensko/Bratislava
-    years = rng.integers(2, 26, n)
+    years = rng.integers(2, 31, n)
     ltv = rng.uniform(0.5, 0.9, n)
     yld = rng.uniform(0.03, 0.07, n)
     buy_cost = np.where(city == 0, rng.uniform(0.055, 0.13, n), rng.uniform(0.003, 0.02, n))

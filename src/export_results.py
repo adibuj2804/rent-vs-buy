@@ -8,7 +8,7 @@ import model as M
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 m = pd.read_csv(os.path.join(ROOT, "data/processed/monthly_2003_2025.csv"), index_col=0)
 m.index = pd.PeriodIndex(m.index, freq="M")
-jst = pd.read_csv(os.path.join(ROOT, "data/processed/jst_annual_1870_2020.csv"))
+jst = pd.read_csv(os.path.join(ROOT, "data/processed/spain_annual_1870_2025.csv"))
 
 r = lambda x: None if pd.isna(x) else round(float(x), 4)
 HORIZONS = [3, 5, 7, 10, 15]
@@ -89,7 +89,7 @@ res["series"] = {
     "mir_es": [r(v) for v in s["mir_es"]],
     "mir_sk": [r(v) for v in s["mir_sk"]],
 }
-d = jst[jst.iso == "ESP"].set_index("year").loc[1950:2020]
+d = jst[jst.iso == "ESP"].set_index("year").loc[1950:2025]
 res["series_long"] = {
     "years": [int(y) for y in d.index],
     "housing_capgain": [r(v) for v in d["housing_capgain"]],
@@ -128,6 +128,20 @@ res["bratislava_facts"] = {
     # nájom z rešerše (ponukový, vrátane energií): Bencont 17,37 EUR/m2 a realitymap 15,7 EUR/m2 mesačne
     "yield_bencont": r(17.37 * 12 / qb[qb.period == "2025-Q4"].ba.iloc[0]), "yield_realitymap": r(15.7 * 12 / qb[qb.period == "2025-Q4"].ba.iloc[0]),
 }
+
+# vyhodnotenie poradcu na histórii (zadanie, časť 4): odpoveď len z dát <= XY vs. skutočný víťaz
+import walkforward as W
+net = W.load_net(os.path.join(ROOT, "site/model/nn_weights.json"))
+annual = pd.read_csv(os.path.join(ROOT, "data/processed/spain_annual_1870_2025.csv"))
+ev = W.evaluate(annual, net)
+sens = {str(L): W.summarize(W.evaluate(annual, None, lookback=L)) for L in (10, 20, 30)}
+res["walkforward"] = {
+    "lookback": W.LOOKBACK, "summary": W.summarize(ev),
+    "lookback_sensitivity": {L: {H: v["estimate"] for H, v in s_.items()} for L, s_ in sens.items()},
+    "rows": {str(H): [[int(r.start), bool(r.buy_won), bool(r.est_buy), bool(r.net_buy), int(r.net_clipped), bool(r.mr_buy),
+                       round(float(r.actual_adv), 3)] for r in g.itertuples()] for H, g in ev.groupby("H")},
+}
+ev.to_csv(os.path.join(ROOT, "data/processed/walkforward_spain.csv"), index=False)
 os.makedirs(os.path.join(ROOT, "site/data"), exist_ok=True)
 json.dump(res, open(os.path.join(ROOT, "site/data/results.json"), "w"))
 print(json.dumps(res["defaults"], indent=1))

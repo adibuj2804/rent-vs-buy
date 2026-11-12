@@ -19,3 +19,8 @@
 - **Nájmy**: lokálny oficiálny rad SERPAVI sa nedá stiahnuť automaticky (aplikácia s reCAPTCHA); používa sa celoštátny HICP rast nájmov a počiatočný výnos ako predpoklad (pre Bratislavu neexistuje žiadny oficiálny rad nájmov; ponukové nájmy z rešerše voči cenám NBS dávajú 5,1–5,6 % hrubého výnosu). Kontrola: SERPAVI 8,9 €/m² (2023, údaj z rešerše) / valor tasado 2023 ≈ 4,7 % hrubého výnosu.
 - Španielske údaje JST o bývaní z rokov 1950–1970 sú dopočítané a „skákavé“; úrovne cien existujú od 1971.
 - Výnosy z nájmu (5,0 % Málaga, 4,5 % Bratislava) sú predpoklady z portálov podľa úvodnej rešerše (Claude.pdf).
+
+
+## Predĺženie španielskeho ročného radu 2021–2025 (`data/processed/spain_annual_1870_2025.csv`)
+JST končí rokom 2020. Roky 2021–2025 (stĺpec `source` = `extension`) sú vypočítané skriptom `src/extend_spain.py`:
+ceny bytov = ročný priemer indexu BIS (ES); výnos z nájmu = predošlý výnos × rast HICP nájmov ÷ rast cien; akcie = MSCI World v EUR + 2 % dividend (**svetový index namiesto španielskych akcií**, ktoré má JST); dlhodobá sadzba = ECB 10-ročný výnos španielskych dlhopisov (`data/raw/ltrate_es_ecb.csv`; v rokoch 2015–2020 sa zhoduje s JST); CPI = HICP ES napojené na JST.

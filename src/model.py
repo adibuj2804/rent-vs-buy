@@ -24,7 +24,7 @@ class Params:
     sell_cost: float = 0.04      # makléri + miestne dane pri predaji (podiel ceny)
     upkeep: float = 0.012        # údržba + daň z nehnuteľnosti + poistenie, ročne, z aktuálnej hodnoty
     gross_yield: float = 0.05    # nájom v 1. roku / cena
-    term_years: int = 25
+    term_years: int = 30         # zadanie projektu: hypotéka štandardne na 30 rokov
     spread: float = 0.0          # variabilné úvery: Euribor + marža (určená pri čerpaní)
     invest_tax: float = 0.21     # daň zo zisku portfólia pri speňažení
     invest_tax_free_after: int = 0  # po koľkých obdobiach je zisk z portfólia bez dane (0 = nikdy)
@@ -51,12 +51,13 @@ def annuity(rate_per_period: float, n: int) -> float:
     return rate_per_period / (1 - (1 + rate_per_period) ** -n)
 
 
-def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon: int):
+def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon: int, parts: bool = False):
     """Simuluje jeden dátum nákupu na `horizon` období.
 
     price_g, rent_g, eq_r : rast cien / nájmov / výnos investície za obdobie (desatinné čísla)
     mort_rate_path        : ROČNÁ sadzba hypotéky v každom období (pri fixnej konštantná)
     Vracia pole adv[1..horizon] = majetok kupujúceho - nájomníka (na 1,0 ceny).
+    S parts=True vráti (kupujúci, nájomník, adv): čistý majetok každého scenára po speňažení v každom období.
     """
     n_total = p.term_years * ppy
     price = 1.0
@@ -70,7 +71,8 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
     buyer_port = 0.0
     buyer_contrib = 0.0
     adv = np.zeros(horizon)
-    prices = [1.0]
+    buyer_arr = np.zeros(horizon)
+    renter_arr = np.zeros(horizon)
     for t in range(horizon):
         r_per = mort_rate_path[t] / ppy
         pay = annuity(r_per, pay_n_left) * bal if bal > 1e-12 else 0.0
@@ -102,7 +104,8 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
         gain = max(price - 1.0, 0)
         home_net = price * (1 - p.sell_cost) - hg * gain - bal
         adv[t] = home_net + b_net - r_net
-    return adv
+        buyer_arr[t], renter_arr[t] = home_net + b_net, r_net
+    return (buyer_arr, renter_arr, adv) if parts else adv
 
 
 def slovakia_flags(p: Params, ppy: int) -> Params:
@@ -150,17 +153,35 @@ def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | Non
 
 
 # ---------------------------------------------------------------- úroveň 2 (ročne, JST)
-def tier2_grid(jst: pd.DataFrame, iso: str = "ESP", p: Params | None = None,
-               start_from: int = 1950, max_years: int = 30, rate_spread: float = 0.015):
-    """Ročný spätný test od `start_from` na národných dátach JST (nominálne, v miestnej mene)."""
+def tier2_run(jst: pd.DataFrame, year: int, horizon: int, iso: str = "ESP", p: Params | None = None,
+              rate_spread: float = 0.015, parts: bool = False):
+    """Jeden ročný nákup v roku `year` na `horizon` rokov; skutočné dáta JST (a predĺženie 2021–2025).
+
+    Vracia (adv, cpi_pomer) alebo s parts=True (kupujúci, nájomník, adv, cpi_pomer); pomer CPI[k] =
+    CPI(year+k) / CPI(year) slúži na prepočet na peniaze roku nákupu. Všetko na 1,0 ceny bytu."""
     d = jst[jst.iso == iso].set_index("year").sort_index()
     p = p or SPAIN
-    # rast cien bytov: JST rad kapitálových ziskov
-    g = d["housing_capgain"]
-    ry = d["housing_rent_yd"]            # nájom / cena (JST)
-    rate = (d["ltrate"] / 100 + rate_spread).clip(lower=0.01)
-    eq = d["eq_tr"]
-    cols = pd.concat([g, ry, rate, eq], axis=1, keys=["g", "ry", "rate", "eq"]).dropna()
+    cols = pd.concat([d["housing_capgain"], d["housing_rent_yd"], (d["ltrate"] / 100 + rate_spread).clip(lower=0.01), d["eq_tr"]],
+                     axis=1, keys=["g", "ry", "rate", "eq"]).dropna()
+    years = list(cols.index)
+    i = years.index(year)
+    H = horizon
+    P = np.r_[1.0, np.cumprod(1 + cols["g"].values[i + 1:i + H + 1])]   # cena na začiatku roka k
+    rent_path = cols["ry"].values[i:i + H + 1] * P                       # nájom_k = výnos_k * cena_k
+    rg = rent_path[1:] / rent_path[:-1] - 1
+    pp = replace(p, gross_yield=cols["ry"].values[i])
+    out = simulate(cols["g"].values[i + 1:i + H + 1], rg, cols["eq"].values[i + 1:i + H + 1],
+                   np.full(H, cols["rate"].values[i]), pp, 1, H, parts=parts)
+    cpi = d["cpi"].reindex(years).values
+    deflator = cpi[i + 1:i + H + 1] / cpi[i]
+    return (*out, deflator) if parts else (out, deflator)
+
+
+def tier2_grid(jst: pd.DataFrame, iso: str = "ESP", p: Params | None = None,
+               start_from: int = 1950, max_years: int = 30, rate_spread: float = 0.015):
+    """Ročný spätný test od `start_from` na národných dátach (reálne hodnoty, v peniazoch roku nákupu)."""
+    d = jst[jst.iso == iso].set_index("year").sort_index()
+    cols = d[["housing_capgain", "housing_rent_yd", "ltrate", "eq_tr"]].dropna()
     years = cols.index.values
     out = {}
     for i, y in enumerate(years):
@@ -169,16 +190,8 @@ def tier2_grid(jst: pd.DataFrame, iso: str = "ESP", p: Params | None = None,
         H = min(max_years, len(years) - i - 1)
         if H < 5:
             break
-        # rent grows with house prices times yield drift: rent_t = yield_t * price_t
-        P = np.r_[1.0, np.cumprod(1 + cols["g"].values[i + 1:i + H + 1])]   # cena na začiatku roka k
-        rent_path = cols["ry"].values[i:i + H + 1] * P                       # nájom_k = výnos_k * cena_k
-        rg = rent_path[1:] / rent_path[:-1] - 1
-        pp = replace(p, gross_yield=cols["ry"].values[i])
-        adv = simulate(cols["g"].values[i + 1:i + H + 1], rg, cols["eq"].values[i + 1:i + H + 1],
-                       np.full(H, cols["rate"].values[i]), pp, 1, H)
-        # prepočet na peniaze východiskového roku, aby boli desaťročia s vysokou infláciou porovnateľné
-        cpi = d["cpi"].reindex(years).values
-        out[int(y)] = {h: adv[h - 1] / (cpi[i + h] / cpi[i]) for h in range(1, H + 1)}
+        adv, defl = tier2_run(jst, int(y), H, iso, p, rate_spread)
+        out[int(y)] = {h: adv[h - 1] / defl[h - 1] for h in range(1, H + 1)}
     return pd.DataFrame(out).T
 
 
