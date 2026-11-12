@@ -1,14 +1,16 @@
-# Rent vs Buy: Malaga and Bratislava
+# Kúpa alebo prenájom: Málaga a Bratislava
 
-Static website + Python code comparing "buy with a mortgage" against "rent and invest the difference".
+Statický web + kód v Pythone, ktorý porovnáva „kúpu s hypotékou“ a „prenájom a investovanie rozdielu“.
 
-* `site/` - open `site/index.html` (works from disk; for sharing, publish `site/` e.g. with GitHub Pages)
-* `src/build_data.py` - raw downloads -> clean tables (`data/processed`)
-* `src/model.py` - the buy-vs-rent engine (monthly for Tier 1, annual for Tier 2)
-* `src/export_results.py` - back-tests and sensitivity -> `site/data/results.json`
-* `src/train_nn.py` - simulated scenarios, labelling, numpy neural network -> `site/model/nn_weights.json`
-* `src/build_site.py` - generates the HTML pages
-* `data/SOURCES.md` - every series, its source and weaknesses
+**Web:** https://adibuj2804.github.io/rent-vs-buy/
 
-Rebuild: `pip install -r requirements.txt`, then from `src/` run `build_data.py`, `export_results.py`, `train_nn.py`, `build_site.py`.
-Not financial advice.
+* `site/` – otvorte `site/index.html` (funguje aj zo súboru; na zdieľanie sa publikuje priečinok `site/`, napr. cez GitHub Pages)
+* `src/build_data.py` – surové dáta → čisté tabuľky (`data/processed`)
+* `src/model.py` – výpočet kúpa vs. prenájom (mesačne pre úroveň 1, ročne pre úroveň 2)
+* `src/export_results.py` – spätné testy a citlivosť → `site/data/results.json`
+* `src/train_nn.py` – simulované scenáre, označenie, neurónová sieť v numpy → `site/model/nn_weights.json`
+* `src/build_site.py` – generuje HTML stránky
+* `data/SOURCES.md` – každý rad, jeho zdroj a slabiny
+
+Opätovné zostavenie: `pip install -r requirements.txt`, potom v priečinku `src/` spustite `build_data.py`, `export_results.py`, `train_nn.py`, `build_site.py`.
+Nejde o finančné poradenstvo.

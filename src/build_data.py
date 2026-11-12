@@ -1,7 +1,7 @@
-"""Turn raw downloads (data/raw) into clean monthly / annual tables (data/processed).
+"""Zmení surové stiahnuté dáta (data/raw) na čisté mesačné / ročné tabuľky (data/processed).
 
-Every series keeps its source in data/SOURCES.md. Nothing here is invented: where a
-series needs an assumption (MSCI dividend add-on) it is a named constant.
+Zdroj každého radu je v data/SOURCES.md. Nič tu nie je vymyslené: kde rad vyžaduje predpoklad
+(dividendy MSCI), je pomenovanou konštantou.
 """
 import csv, json, datetime, os
 import numpy as np
@@ -11,7 +11,7 @@ RAW = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
 OUT = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 os.makedirs(OUT, exist_ok=True)
 
-MSCI_NET_DIVIDEND_YIELD = 0.02  # ASSUMPTION: MSCI World price index + ~2 %/yr net dividends
+MSCI_NET_DIVIDEND_YIELD = 0.02  # PREDPOKLAD: cenový index MSCI World + ≈ 2 % ročne čisté dividendy
 
 
 def ecb(fname):
@@ -34,20 +34,20 @@ def monthly():
             "eurusd": ecb("eurusd.csv"),
         }
     )
-    # MSCI World price index (USD), monthly
+    # MSCI World cenový index (USD), mesačne
     j = json.load(open(os.path.join(RAW, "msci_world_daily.json")))["chart"]["result"][0]
     idx = pd.PeriodIndex(
         [datetime.date.fromtimestamp(t) for t in j["timestamp"]], freq="M"
     )
-    # last available daily close of each month; missing daily values are dropped first
+    # posledná dostupná denná hodnota mesiaca; chýbajúce denné hodnoty sa najprv vyradia
     msci = pd.Series(j["indicators"]["quote"][0]["close"], index=idx).dropna().groupby(level=0).last()
     m["msci_usd_price"] = msci
     m = m.loc["2003-01":]
-    m = m[m.index <= pd.Period("2025-12", "M")]  # HICP ends 2025-12: common end date
-    # MSCI in EUR with dividend add-on (monthly compounding of the assumed yield)
+    m = m[m.index <= pd.Period("2025-12", "M")]  # HICP končí 2025-12: spoločný koniec
+    # MSCI v EUR s prirážkou dividend (mesačné úročenie predpokladaného výnosu)
     eur = m["msci_usd_price"] / m["eurusd"]
     m["msci_eur_tr"] = eur * (1 + MSCI_NET_DIVIDEND_YIELD) ** (np.arange(len(m)) / 12)
-    # BIS quarterly house price index -> monthly (linear interpolation in logs)
+    # štvrťročný index cien bytov BIS -> mesačný (lineárna interpolácia v logaritmoch)
     bis = pd.read_csv(os.path.join(RAW, "bis_spp.csv"))
     for iso, col in [("ES", "hp_es"), ("SK", "hp_sk")]:
         s = bis[bis.REF_AREA == iso].set_index("TIME_PERIOD")["OBS_VALUE"].astype(float)

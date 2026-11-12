@@ -1,13 +1,13 @@
-"""Train the advisor neural network on simulated scenarios labelled by the exact model.
+"""Natrénuje neurónovú sieť poradcu na simulovaných scenároch označených presným modelom.
 
-Why simulation: ~20 years of local housing history gives only a handful of independent
-buy-vs-rent outcomes - far too few for a network. So we
-  1. measure from history the plausible ranges and volatilities of every driver,
-  2. draw tens of thousands of scenarios from those ranges,
-  3. add historical-size noise to the *realised* paths (the household only knows expectations),
-  4. label each scenario with the exact model (src/model.py) -> "did buying win?",
-  5. train a small MLP (pure numpy, no ML library) to predict P(buy wins) and the wealth gap.
-The weights are exported to JSON and the website runs the same forward pass in JavaScript.
+Prečo simulácia: ~20 rokov lokálnej histórie dáva len pár nezávislých výsledkov „kúpa vs. prenájom“,
+čo je pre sieť príliš málo. Preto:
+  1. z histórie odmeriame vierohodné rozsahy a volatility každého vstupu,
+  2. z týchto rozsahov vylosujeme desaťtisíce scenárov,
+  3. k *realizovanému* priebehu pridáme šum historickej veľkosti (domácnosť pozná len očakávania),
+  4. každý scenár označíme presným modelom (src/model.py) -> „vyhrala kúpa?“,
+  5. natrénujeme malú sieť MLP (čisté numpy, bez ML knižnice) na P(kúpa vyhráva) a rozdiel majetku.
+Váhy sa exportujú do JSON a web robí rovnaký dopredný prechod v JavaScripte.
 """
 import json, os
 import numpy as np
@@ -17,25 +17,25 @@ import model as M
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 rng = np.random.default_rng(42)
 
-GAP_SCALE = 1.5   # wealth-gap target is clipped to +/-1.5x the purchase price and divided by this
+GAP_SCALE = 1.5   # cieľ „rozdiel majetku“ sa orezáva na ±1,5× ceny a delí touto hodnotou
 FEATURES = ["city_SK", "years", "ltv", "gross_yield", "buy_cost", "house_growth",
             "rent_growth", "equity_return", "mortgage_rate"]
 
 
-# ---- 1. what history says about volatility (for the noise on realised paths) -------------
+# ---- 1. čo hovorí história o volatilite (pre šum na realizovaných priebehoch) -------------
 m = pd.read_csv(os.path.join(ROOT, "data/processed/monthly_2003_2025.csv"), index_col=0)
 def annual_sd(series, months=12):
     r = (series.shift(-months) / series - 1).dropna()
     return float(r.std())
 SD_HOUSE = np.mean([annual_sd(m["hp_es"]), annual_sd(m["hp_sk"])])
 SD_EQ = annual_sd(m["msci_eur_tr"])
-SD_RATE = 0.012   # std of Euribor level changes over a decade, rounded (see notebook 02)
+SD_RATE = 0.012   # smerodajná odchýlka zmien Euriboru za desaťročie, zaokrúhlená
 print(f"historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}")
 
 
-# ---- 2/3/4. scenarios + labels -------------------------------------------------------------
+# ---- 2/3/4. scenáre + označenie ------------------------------------------------------------
 def make(n):
-    city = rng.integers(0, 2, n)                     # 0 = Spain/Malaga, 1 = Slovakia/Bratislava
+    city = rng.integers(0, 2, n)                     # 0 = Španielsko/Málaga, 1 = Slovensko/Bratislava
     years = rng.integers(2, 26, n)
     ltv = rng.uniform(0.5, 0.9, n)
     yld = rng.uniform(0.03, 0.07, n)
@@ -46,7 +46,7 @@ def make(n):
     rate = rng.uniform(0.015, 0.07, n)
     X = np.c_[city, years, ltv, yld, buy_cost, house_g, rent_g, eq, rate]
 
-    # realised outcome = expectation + noise that shrinks with horizon (sd/sqrt(years))
+    # realizovaný výsledok = očakávanie + šum, ktorý s horizontom klesá (sd/sqrt(roky))
     z1, z2 = rng.standard_normal(n), rng.standard_normal(n)
     corr = 0.3
     g_real = house_g + SD_HOUSE / np.sqrt(years) * z1
@@ -70,7 +70,7 @@ def make(n):
     return X, adv_noisy, adv_exact
 
 
-# ---- 5. tiny MLP in numpy ---------------------------------------------------------------
+# ---- 5. malá sieť MLP v numpy -----------------------------------------------------------
 def init(sizes):
     return [(rng.standard_normal((a, b)) * np.sqrt(2 / a), np.zeros(b)) for a, b in zip(sizes[:-1], sizes[1:])]
 
@@ -94,7 +94,7 @@ def train(Xtr, ytr, ctr, epochs=120, lr=2e-3, batch=512, hidden=(64, 64)):
             acts = forward(params, x)
             out = acts[-1]
             p = 1 / (1 + np.exp(-out[:, 0]))
-            # loss = BCE(win) + 0.5*MSE(scaled wealth gap)
+            # strata = BCE(výhra) + 0.5*MSE(škálovaný rozdiel majetku)
             d = np.c_[(p - yc) / len(idx), 0.5 * 2 * (out[:, 1] - yr) / len(idx)]
             t += 1
             for i in reversed(range(len(params))):
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     N = 120_000
     X, adv_n, adv_e = make(N)
     y_win = (adv_n > 0).astype(float)
-    y_gap = np.clip(adv_e, -GAP_SCALE, GAP_SCALE) / GAP_SCALE                # regression target: gap under the stated assumptions (no noise)
+    y_gap = np.clip(adv_e, -GAP_SCALE, GAP_SCALE) / GAP_SCALE                # regresný cieľ: rozdiel pri zadaných predpokladoch (bez šumu)
     mu, sd = X.mean(0), X.std(0) + 1e-9
     Xn = (X - mu) / sd
     cut = int(0.85 * N)
@@ -125,14 +125,14 @@ if __name__ == "__main__":
     p = 1 / (1 + np.exp(-out[:, 0]))
     acc = ((p > 0.5) == (y_win[cut:] > 0.5)).mean()
     brier = ((p - y_win[cut:]) ** 2).mean()
-    # how often does the network agree with the *exact expected-value* model?
+    # ako často sa sieť zhoduje s *presným modelom očakávaných hodnôt*?
     agree = ((p > 0.5) == (adv_e[cut:] > 0)).mean()
     gap_err = np.abs(out[:, 1] * GAP_SCALE - np.clip(adv_e[cut:], -GAP_SCALE, GAP_SCALE))
     print(f"gap head: median abs error {np.median(gap_err):.3f} of price, 90th pct {np.percentile(gap_err, 90):.3f}")
     base = max(y_win[cut:].mean(), 1 - y_win[cut:].mean())
     print(f"hold-out accuracy {acc:.3f} (majority baseline {base:.3f}); Brier {brier:.3f}; "
           f"agreement with deterministic exact model {agree:.3f}")
-    # calibration table
+    # tabuľka kalibrácie
     bins = np.linspace(0, 1, 11)
     cal = []
     for lo, hi in zip(bins[:-1], bins[1:]):

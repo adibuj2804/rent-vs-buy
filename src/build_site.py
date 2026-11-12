@@ -1,5 +1,5 @@
-"""Generate the static website (site/*.html). Data and code are embedded so each page also
-works when opened straight from disk."""
+"""Vygeneruje statický web (site/*.html) po slovensky. Dáta a kód sú vložené priamo do stránok,
+takže fungujú aj po otvorení zo súboru."""
 import json, os, html
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -8,261 +8,391 @@ res = json.load(open(os.path.join(SITE, "data/results.json")))
 nn = json.load(open(os.path.join(SITE, "model/nn_weights.json")))
 read = lambda p: open(os.path.join(ROOT, p), encoding="utf-8").read()
 code = lambda p: html.escape(read(p))
-pct = lambda x: "n/a" if x is None else f"{x*100:.0f} %"
+NB = " "
+
+
+def pct(x):
+    return "n/a" if x is None else "%.0f%s%%" % (x * 100, NB)
+
+
+def dec(x, nd=1):
+    return (("%." + str(nd) + "f") % x).replace(".", ",")
+
 
 CSS = """
-:root{--bg:#fbfaf7;--fg:#1d2433;--mut:#5d6677;--card:#fff;--line:#e3e0d8;--acc:#0b6e8a;--buy:#c2561a;--rent:#0b6e8a;--warn:#fff4d6;--warnb:#e0b84c}
-@media (prefers-color-scheme:dark){:root{--bg:#12161d;--fg:#e8ebf1;--mut:#9aa4b5;--card:#1a202a;--line:#2b3340;--acc:#5ec0dc;--buy:#f08a52;--rent:#5ec0dc;--warn:#33290f;--warnb:#8a6d1c}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-a{color:var(--acc)}header.nav{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:5}
-header.nav div{max-width:1050px;margin:auto;padding:12px 20px;display:flex;gap:22px;flex-wrap:wrap;align-items:center}
-header.nav b{margin-right:auto}header.nav a{text-decoration:none;color:var(--fg);padding:2px 0;border-bottom:2px solid transparent}
-header.nav a.on{border-color:var(--acc);font-weight:600}
-main{max-width:1050px;margin:auto;padding:24px 20px 80px}h1{font-size:2.1rem;line-height:1.2;margin:.2em 0}h2{margin-top:2.2em;font-size:1.5rem}h3{margin-top:1.6em}
-.hero{border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#0b6e8a,#173a5e);color:#fff;padding:28px 28px 0;margin-bottom:24px}
-.hero p{max-width:640px;opacity:.92}.hero svg{display:block;width:100%;height:90px;margin-top:10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}.card .n{font-size:2rem;font-weight:700}.card small{color:var(--mut)}
-.chart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0}.chart canvas{max-height:360px}
-.note{background:var(--warn);border:1px solid var(--warnb);border-radius:10px;padding:12px 16px;margin:16px 0}
-table{border-collapse:collapse;width:100%;font-size:.93rem;background:var(--card)}th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}th{background:rgba(127,127,127,.08)}
-details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:12px 0}summary{cursor:pointer;font-weight:600}
-pre{overflow:auto;font-size:.8rem;line-height:1.45;background:rgba(127,127,127,.09);padding:12px;border-radius:8px;max-height:560px}
-label{display:block;font-size:.85rem;color:var(--mut);margin-top:10px}input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);font-size:1rem}
-.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px 16px}button{margin-top:18px;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 22px;font-size:1rem;cursor:pointer}
-.verdict{font-size:1.5rem;font-weight:700}.bar{height:16px;background:var(--rent);border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--buy)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.two{grid-template-columns:1fr}}
-.cap{color:var(--mut);font-size:.85rem}
+:root{--bg:#faf8f4;--fg:#1c2331;--mut:#5b6474;--card:#fff;--line:#e4e0d6;--acc:#0b6e8a;--buy:#c2561a;--rent:#0b6e8a;--warn:#fff4d6;--warnb:#e0b84c;--ok:#e6f3ee;--okb:#7fb8a2}
+@media (prefers-color-scheme:dark){:root{--bg:#12161d;--fg:#e8ebf1;--mut:#9aa4b5;--card:#1a202a;--line:#2b3340;--acc:#5ec0dc;--buy:#f08a52;--rent:#5ec0dc;--warn:#33290f;--warnb:#8a6d1c;--ok:#16302a;--okb:#3d7a66}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:var(--acc)}
+header.nav{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:20}
+header.nav div{max-width:1080px;margin:auto;padding:10px 20px;display:flex;gap:8px 22px;flex-wrap:wrap;align-items:center}
+header.nav b{margin-right:auto;font-size:.95rem}header.nav a{text-decoration:none;color:var(--fg);padding:4px 2px;border-bottom:3px solid transparent}
+header.nav a.on{border-color:var(--acc);font-weight:700}
+nav.toc{position:sticky;top:53px;background:var(--bg);z-index:10;border-bottom:1px solid var(--line)}
+nav.toc div{max-width:1080px;margin:auto;padding:8px 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.88rem}
+nav.toc span{color:var(--mut);margin-right:4px}nav.toc a{text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px 12px;color:var(--fg)}
+nav.toc a:hover{border-color:var(--acc)}
+main{max-width:1080px;margin:auto;padding:22px 20px 90px}
+section{scroll-margin-top:112px}h1{font-size:2.2rem;line-height:1.15;margin:.1em 0 .3em}h2{margin:2.2em 0 .5em;font-size:1.6rem}h2 small{display:block;font-size:.9rem;font-weight:400;color:var(--mut)}h3{margin:1.6em 0 .4em}
+.hero{position:relative;border-radius:16px;overflow:hidden;color:#fff;padding:54px 30px 34px;margin-bottom:22px;background:#173a5e center/cover}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,25,45,.25),rgba(10,25,45,.78))}.hero>*{position:relative}
+.hero p{max-width:660px;font-size:1.1rem;margin:.4em 0 0}.hero .tag{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 12px;font-size:.85rem}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:300px;padding:0;align-items:end}
+.split .half{background:center/cover;min-height:300px;position:relative;z-index:0}.split:before{display:none}.split .txt{position:absolute;left:0;right:0;bottom:0;padding:30px;background:linear-gradient(180deg,transparent,rgba(10,25,45,.85));z-index:1}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}@media(max-width:700px){.strip{grid-template-columns:1fr}.split{grid-template-columns:1fr}}
+figure{margin:0;border-radius:12px;overflow:hidden;background:var(--card);border:1px solid var(--line)}figure img{display:block;width:100%;height:260px;object-fit:cover}figcaption{padding:8px 12px;font-size:.85rem;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:block;color:inherit;text-decoration:none}.card .n{font-size:2.2rem;font-weight:800;line-height:1.1}.card small{color:var(--mut)}
+a.card:hover{border-color:var(--acc);transform:translateY(-2px)}a.card{transition:.15s}
+.photo-card{padding:0;overflow:hidden}.photo-card img{width:100%;height:190px;object-fit:cover;display:block}.photo-card div{padding:14px 18px 18px}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}.chart canvas{max-height:360px}
+.note{background:var(--warn);border:1px solid var(--warnb);border-radius:12px;padding:12px 16px;margin:16px 0}
+.sum{background:var(--ok);border:1px solid var(--okb);border-radius:14px;padding:16px 20px;margin:18px 0}.sum b.h{display:block;font-size:1.05rem;margin-bottom:4px}
+.read{color:var(--mut);font-size:.9rem;margin:-4px 0 10px}.read:before{content:"Ako to čítať: ";font-weight:700}
+table{border-collapse:collapse;width:100%;font-size:.93rem;background:var(--card)}th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:rgba(127,127,127,.09)}
+.tw{overflow-x:auto}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:12px 0}summary{cursor:pointer;font-weight:600}
+pre{overflow:auto;font-size:.8rem;line-height:1.45;background:rgba(127,127,127,.09);padding:12px;border-radius:8px;max-height:540px}
+label{display:block;font-size:.88rem;font-weight:600;margin-top:12px}label small{display:block;font-weight:400;color:var(--mut)}
+input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--fg);font-size:1rem}
+fieldset{border:1px solid var(--line);border-radius:14px;padding:6px 18px 16px;margin:0 0 16px;background:var(--card)}legend{font-weight:800;padding:0 8px}
+button.go{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:14px 26px;font-size:1.05rem;cursor:pointer;width:100%;font-weight:700}
+.verdict{font-size:1.5rem;font-weight:800;line-height:1.25}.bar{height:16px;background:var(--rent);border-radius:8px;overflow:hidden;margin:8px 0 2px}.bar i{display:block;height:100%;background:var(--buy)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:800px){.two{grid-template-columns:1fr}}
+.adv{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}@media(max-width:900px){.adv{grid-template-columns:1fr}}.adv .res{position:sticky;top:120px}
+.cap{color:var(--mut);font-size:.86rem}ol.steps{padding-left:1.2em}ol.steps li{margin:.5em 0}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 """
 
-SKY = ('<svg viewBox="0 0 800 90" preserveAspectRatio="none"><path fill="rgba(255,255,255,.14)" d="M0 90V60h40V40h30v20h30V25h35v35h40V50h30V30h25v30h45V45h40v15h35V20h30v40h50V50h35V35h30v25h45V55h60V40h35v20h40V90z"/></svg>')
+NAV = [("index", "Úvod"), ("malaga", "Málaga"), ("bratislava", "Bratislava"), ("advisor", "Poradca")]
 
-def page(slug, title, body, script="", extra_head=""):
-    nav = [("index", "Overview"), ("malaga", "Málaga"), ("bratislava", "Bratislava"), ("advisor", "Advisor")]
-    links = "".join(f'<a href="{s}.html" class="{"on" if s==slug else ""}">{n}</a>' for s, n in nav)
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title} · Rent vs Buy</title><style>{CSS}</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>{extra_head}</head><body>
-<header class="nav"><div><b>Rent vs Buy: data analysis project</b>{links}</div></header><main>{body}</main>
-<script id="results" type="application/json">{json.dumps(res)}</script>
+
+def page(slug, title, body, script="", toc=None):
+    links = "".join('<a href="%s.html" class="%s">%s</a>' % (s, "on" if s == slug else "", n) for s, n in NAV)
+    tocnav = ""
+    if toc:
+        tocnav = '<nav class="toc"><div><span>Na tejto stránke:</span>%s</div></nav>' % "".join(
+            '<a href="#%s">%s</a>' % t for t in toc)
+    return """<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__ · Kúpa alebo prenájom</title><style>__CSS__</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script></head><body>
+<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b>__LINKS__</div></header>__TOC__<main>__BODY__
+<footer>Vzdelávací projekt. Nejde o finančné poradenstvo. Dáta: ECB, BIS, MSCI, Jordà–Schularick–Taylor – podrobnosti v sekcii „Zdroje“ na úvodnej stránke.</footer></main>
+<script id="results" type="application/json">__DATA__</script>
 <script>
 const R = JSON.parse(document.getElementById('results').textContent);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const COL = {{buy: css('--buy'), rent: css('--rent'), mut: css('--mut')}};
+const COL = {buy: css('--buy'), rent: css('--rent'), mut: css('--mut')};
 Chart.defaults.color = css('--mut'); Chart.defaults.font.family = 'inherit';
-function line(id, labels, sets, opts={{}}) {{
-  new Chart(document.getElementById(id), {{type:'line', data:{{labels, datasets: sets.map(s=>({{pointRadius:0, borderWidth:2, tension:0.1, spanGaps:false, ...s}}))}},
-    options:{{responsive:true, interaction:{{mode:'index', intersect:false}}, scales:{{x:{{ticks:{{maxTicksLimit:10}}}}, y:{{title:{{display:!!opts.ytitle, text:opts.ytitle}}}}}}, plugins:{{title:{{display:!!opts.title, text:opts.title}}}}}}}});
-}}
-{script}
-</script></body></html>"""
+function line(id, labels, sets, opts={}) {
+  new Chart(document.getElementById(id), {type:'line', data:{labels, datasets: sets.map(s=>({pointRadius:0, borderWidth:2, tension:0.1, spanGaps:false, ...s}))},
+    options:{responsive:true, interaction:{mode:'index', intersect:false}, scales:{x:{ticks:{maxTicksLimit:10}}, y:{title:{display:!!opts.ytitle, text:opts.ytitle}}}, plugins:{title:{display:!!opts.title, text:opts.title}}}});
+}
+__SCRIPT__
+</script></body></html>""".replace("__TITLE__", title).replace("__CSS__", CSS).replace("__LINKS__", links) \
+        .replace("__TOC__", tocnav).replace("__BODY__", body).replace("__DATA__", json.dumps(res)).replace("__SCRIPT__", script)
 
-# ------------------------------------------------------------------ shared pieces
+
+def bg(img):
+    return 'style="background-image:url(img/%s)"' % img
+
+
+def fig(img, cap):
+    return '<figure><img src="img/%s" alt="%s" loading="lazy"><figcaption>%s</figcaption></figure>' % (img, cap, cap)
+
+
+def code_block(title, path):
+    return "<details><summary>%s</summary><pre>%s</pre></details>" % (title, code(path))
+
+
+GLOSAR = """<details><summary>Slovníček pojmov (kliknite pre rozbalenie)</summary><table>
+<tr><th>Pojem</th><th>Význam</th></tr>
+<tr><td><b>Horizont</b></td><td>Koľko rokov bývanie plánujete – po tomto čase byt predáte a porovnáme majetok oboch domácností.</td></tr>
+<tr><td><b>Bod zvratu</b> (break-even)</td><td>Najkratší horizont, od ktorého je kúpa trvalo lepšia než prenájom.</td></tr>
+<tr><td><b>LTV</b></td><td>Pomer úveru k cene nehnuteľnosti. LTV 80 % = 20 % ceny platíte z vlastných.</td></tr>
+<tr><td><b>Hrubý výnos z prenájmu</b></td><td>Ročný nájom ÷ cena bytu. Pri 5 % a byte za 200 000 € je ročný nájom 10 000 €.</td></tr>
+<tr><td><b>Fixná / variabilná hypotéka</b></td><td>Fixná má sadzbu pevnú; variabilná sleduje Euribor (trhovú sadzbu) a mení sa.</td></tr>
+<tr><td><b>Euribor</b></td><td>Medzibanková sadzba v eurách – základ pre ceny variabilných hypoték.</td></tr>
+<tr><td><b>MSCI World</b></td><td>Akciový index veľkých firiem z rozvinutých krajín; modelujeme ním „investovanie rozdielu“ (napr. cez ETF).</td></tr>
+<tr><td><b>Reálne hodnoty</b></td><td>Prepočítané na peniaze východiskového roku (očistené o infláciu).</td></tr>
+<tr><td><b>Výhoda kúpy</b></td><td>Majetok kupujúceho mínus majetok nájomníka na konci horizontu. Kladné číslo = kúpa vyhráva. Uvádza sa ako podiel kúpnej ceny.</td></tr></table></details>"""
+
+ASSUMP = """<div class="tw"><table><tr><th>Predpoklad</th><th>Španielsko / Málaga</th><th>Slovensko / Bratislava</th><th>Zdroj / základ</th></tr>
+<tr><td>LTV</td><td colspan="2">80 %</td><td>Bežná prax bánk (ES); limity NBS 80–90 % (SK)</td></tr>
+<tr><td>Dane a poplatky pri kúpe</td><td>10 %</td><td>0,6 %</td><td>ES: daň z prevodu ITP 7 % + notár, register (Junta de Andalucía). SK: bez dane z prevodu, poplatok katastru + právnik</td></tr>
+<tr><td>Náklady pri predaji</td><td>4 %</td><td>3 % (+19 % daň zo zisku pri predaji do 5 rokov)</td><td>Provízia makléra, obecná plusvalía</td></tr>
+<tr><td>Údržba + daň z nehnuteľnosti</td><td>1,2 % hodnoty ročne</td><td>1,05 % hodnoty ročne</td><td>IBI, poplatky spoločenstva, opravy</td></tr>
+<tr><td>Splatnosť úveru</td><td>25 rokov</td><td>30 rokov</td><td>INE (priemer), maximum NBS</td></tr>
+<tr><td>Hrubý výnos z prenájmu v 1. roku</td><td>5,0 %</td><td>4,5 %</td><td>Ponukové nájmy z portálov (idealista, realitymap) – <b>nie oficiálne dáta</b>; preto robíme test citlivosti</td></tr>
+<tr><td>Rast nájmu</td><td colspan="2">Skutočný index HICP „skutočné nájomné za bývanie“</td><td>ECB / Eurostat</td></tr>
+<tr><td>Sadzba hypotéky</td><td colspan="2">Sadzba nových hypoték v čase kúpy (ECB MIR); buď fixná na celú dobu, alebo Euribor 12M + pôvodná marža</td><td>ECB MIR, Euribor</td></tr>
+<tr><td>Investovanie</td><td colspan="2">MSCI World v EUR + 2 % odhadované čisté dividendy</td><td>Cenový index MSCI, <b>dividendy sú náš odhad</b></td></tr>
+<tr><td>Daň zo ziskov z investícií</td><td>21 % pri speňažení (plochá aproximácia 19–30 %)</td><td>0 % (po 1 roku oslobodené)</td><td>AEAT; zákon o dani z príjmov SR</td></tr>
+<tr><td>Pravidlo férovosti</td><td colspan="3">Obe domácnosti míňajú mesačne rovnako. Kto má bývanie lacnejšie, rozdiel investuje. Nájomník navyše hneď na začiatku investuje vlastné zdroje a poplatky, ktoré by išli do kúpy.</td></tr></table></div>"""
+
+ZDROJE = """<ul>
+<li><b>ECB Data Portal</b> (SDMX API): Euribor 12M, sadzby hypoték (ES od 2003, SK od 2008), inflácia HICP a „skutočné nájomné“, kurz EUR/USD – <a href="https://data.ecb.europa.eu">data.ecb.europa.eu</a></li>
+<li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971, Slovensko od 2006) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
+<li><b>MSCI World</b> – cenový index v USD, denné údaje od 1972 (Yahoo Finance), prepočet na EUR podľa ECB; dividendy 2 % ročne sú <i>odhad</i></li>
+<li><b>Jordà–Schularick–Taylor Macrohistory Database</b>, vydanie R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019): „The Rate of Return on Everything, 1870–2015“, <i>Quarterly Journal of Economics</i></li>
+<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT, katastrálny portál SR / NBS – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
+<li>Úplný zoznam sérií so začiatkami a slabinami: <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">data/SOURCES.md</a></li></ul>"""
+
+
+# ------------------------------------------------------------------ pomocné bloky
 def key_cards(city):
     d = res[city]["fixed"]
     ws = d["winshare"]
-    n10 = d["n_starts"].get("10")
-    return f"""<div class="grid">
-<div class="card"><div class="n">{pct(ws.get("5"))}</div><small>of back-tested start months where buying beat renting after <b>5 years</b> ({d["n_starts"].get("5")} start months)</small></div>
-<div class="card"><div class="n">{pct(ws.get("10"))}</div><small>… after <b>10 years</b> ({n10} start months)</small></div>
-<div class="card"><div class="n">{pct(d["never_wins_share"])}</div><small>of start months where buying <b>never</b> ended up permanently ahead within the window</small></div>
-</div>"""
+    return """<div class="grid">
+<div class="card"><div class="n">%s</div><small>testovaných mesiacov nákupu, v ktorých kúpa po <b>5 rokoch</b> predbehla prenájom (%s mesiacov)</small></div>
+<div class="card"><div class="n">%s</div><small>… po <b>10 rokoch</b> (%s mesiacov)</small></div>
+<div class="card"><div class="n">%s</div><small>mesiacov, v ktorých kúpa <b>nikdy</b> nebola trvalo vpredu</small></div></div>
+<p class="cap">Fixná hypotéka. Pri dlhých horizontoch ostáva málo mesiacov nákupu a tie sa silno prekrývajú – nejde o nezávislé pozorovania.</p>""" % (
+        pct(ws.get("5")), d["n_starts"].get("5"), pct(ws.get("10")), d["n_starts"].get("10"), pct(d["never_wins_share"]))
+
 
 def sens_table(city):
     s = res[city]["sensitivity"]
-    rows = "".join(f"<tr><td>{y*100:.1f} %</td><td>{pct(w)}</td></tr>" for y, w in s["yield"])
-    rows2 = "".join(f"<tr><td>{c*100:.1f} %</td><td>{pct(w)}</td></tr>" for c, w in s["buy_cost"])
-    return f"""<div class="two"><div><h3>Sensitivity: gross rental yield</h3><table><tr><th>First-year rent ÷ price</th><th>Buying wins (10 y, fixed loan)</th></tr>{rows}</table></div>
-<div><h3>Sensitivity: purchase costs</h3><table><tr><th>Taxes + fees, share of price</th><th>Buying wins (10 y, fixed loan)</th></tr>{rows2}</table></div></div>
-<p class="cap">All else equal. Rent level is the most uncertain input (see data limits), so it is the first thing to stress-test.</p>"""
+    r1 = "".join("<tr><td>%s %%</td><td>%s</td></tr>" % (dec(y * 100), pct(w)) for y, w in s["yield"])
+    r2 = "".join("<tr><td>%s %%</td><td>%s</td></tr>" % (dec(c * 100), pct(w)) for c, w in s["buy_cost"])
+    return """<div class="two"><div><h3>Čo ak je nájom vyšší či nižší?</h3><table><tr><th>Ročný nájom ÷ cena</th><th>Kúpa vyhráva (10 r., fixná)</th></tr>%s</table></div>
+<div><h3>Čo ak sú náklady pri kúpe iné?</h3><table><tr><th>Dane a poplatky, %% ceny</th><th>Kúpa vyhráva (10 r., fixná)</th></tr>%s</table></div></div>
+<p class="cap">Ostatné predpoklady sú rovnaké. Výška nájmu je najneistejší vstup (oficiálne dáta sú slabé), preto je prvý na stres-test.</p>""" % (r1, r2)
 
-ASSUMP = """<table><tr><th>Assumption</th><th>Spain / Málaga</th><th>Slovakia / Bratislava</th><th>Source / basis</th></tr>
-<tr><td>Loan-to-value</td><td colspan="2">80 %</td><td>Typical bank practice (ES); NBS limit 80–90 % (SK)</td></tr>
-<tr><td>Purchase taxes + fees</td><td>10 %</td><td>0.6 %</td><td>ITP 7 % + notary/registry (Junta de Andalucía); no transfer tax in SK, cadastre fee + lawyer</td></tr>
-<tr><td>Selling costs</td><td>4 %</td><td>3 % (+19 % tax on gain if sold within 5 y)</td><td>Agent fee, municipal plusvalía</td></tr>
-<tr><td>Upkeep + property tax</td><td>1.2 % of value / yr</td><td>1.05 % of value / yr</td><td>IBI, community fees, repairs</td></tr>
-<tr><td>Loan term</td><td>25 y</td><td>30 y</td><td>INE (avg. term), NBS max term</td></tr>
-<tr><td>First-year gross yield (rent ÷ price)</td><td>5.0 %</td><td>4.5 %</td><td>Portal asking rents (idealista, realitymap) – <b>not official</b>; stress-tested above</td></tr>
-<tr><td>Rent growth</td><td colspan="2">Actual HICP “actual rentals for housing” index</td><td>ECB / Eurostat</td></tr>
-<tr><td>Mortgage rate</td><td colspan="2">ECB new-business house-purchase rate at purchase date; fixed for life, or Euribor 12M + original spread</td><td>ECB MIR statistics, Euribor</td></tr>
-<tr><td>Investment</td><td colspan="2">MSCI World (EUR) + 2 % assumed net dividends</td><td>MSCI price index, <b>dividend add-on is an assumption</b></td></tr>
-<tr><td>Tax on investment gains</td><td>21 % at liquidation (flat approximation of 19–30 % savings scale)</td><td>0 % (exempt after 1 y)</td><td>AEAT; Slovak income-tax act</td></tr>
-<tr><td>Fair-comparison rule</td><td colspan="3">Both households spend the same cash each month; whoever has the lower housing cost invests the difference. The renter also invests the down payment and purchase costs on day 0.</td></tr></table>"""
 
-SOURCES = """<ul>
-<li>ECB Data Portal (SDMX API): Euribor 12M (FM), mortgage rates (MIR: ES from 2003, SK from 2008), HICP all items and “actual rentals” (ICP), EUR/USD (EXR) – <a href="https://data.ecb.europa.eu">data.ecb.europa.eu</a></li>
-<li>BIS Residential Property Price Statistics (WS_SPP), nominal index, Spain from 1971, Slovakia from 2006 – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
-<li>MSCI World price index (USD), daily from 1972 via Yahoo Finance chart API; converted to EUR with ECB rates; 2 %/yr net dividends added (assumption)</li>
-<li>Jordà–Schularick–Taylor Macrohistory Database, release R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019), “The Rate of Return on Everything, 1870–2015”, <i>Quarterly Journal of Economics</i></li>
-<li>Tax and cost parameters: Junta de Andalucía (ITP), AEAT, Slovak cadastre / NBS – see the earlier research report (<code>Claude.pdf</code>); press-reported values should be re-verified on the primary portals.</li></ul>"""
-
-def code_block(title, path):
-    return f"<details><summary>{title}</summary><pre>{code(path)}</pre></details>"
-
-# ------------------------------------------------------------------ pages
+# ------------------------------------------------------------------ stránky mesta
 def city_page(city):
     ES = city == "ES"
     name = "Málaga" if ES else "Bratislava"
     slug = "malaga" if ES else "bratislava"
-    hp_key, rent_key, mir_key = ("hp_es", "rent_es", "mir_es") if ES else ("hp_sk", "rent_sk", "mir_sk")
-    series_note = ("""<div class="note"><b>Data scope:</b> The house-price series here is the <b>Spain national index</b> (BIS), not a Málaga-only series. The Málaga-specific series (MIVAU <i>valor tasado</i> from 2005, Notariado, SERPAVI rents) are the next data layer to load; Málaga-level prices have behaved differently from the national average since 2015, so read these results as “Spain-wide, Málaga cost structure”.</div>"""
-        if ES else """<div class="note"><b>Data scope:</b> House prices are the <b>Slovakia national index</b> (BIS, from 2006) and rents are national HICP rents; neither is Bratislava-only. A 1950+ model is <b>not possible</b>: Slovakia is not in the long-run databases and had no housing market before about 1990.</div>""")
-    tier2 = ""
+    hp, rent = ("hp_es", "rent_es") if ES else ("hp_sk", "rent_sk")
+    E = res[city]["fixed"]
+    s = res[city]["sensitivity"]
+    w5, w10 = E["winshare"]["5"], E["winshare"]["10"]
     if ES:
-        dec = res["tier2"]["decades"]
-        fmt = lambda v: "n/a" if v is None else "%+.0f %%" % (v * 100)
-        drows = "".join("<tr><td>%ss</td><td>%s</td><td>%s</td></tr>" % (k, pct(v["winshare10"]), fmt(v["median10"])) for k, v in dec.items())
-        tier2 = f"""<h2>Tier 2 · Long history 1950–2020 (Spain, national)</h2>
-<div class="note"><b>Data quality:</b> Spanish house-price <i>levels</i> exist only from 1971. For 1950–1970 the JST database reconstructs housing returns from rent benchmarks; the year-to-year jumps (e.g. +45 % then −23 %) show it is noisy. Treat the 1950s–60s as indicative only. All results are <b>real</b> (deflated with CPI to start-year money), use modern tax and cost rules throughout, a mortgage rate of long-term government yield + 1.5 pp, and local equity total returns.</div>
-<div class="chart"><canvas id="t2"></canvas></div>
-<div class="two"><table><tr><th>Start decade</th><th>Buying wins (10 y)</th><th>Median advantage (% of price)</th></tr>{drows}</table>
-<div><p>Reading: buying was strongly favoured in the 1950s–70s (negative real rates, rapid price growth), clearly <b>not</b> favoured for starts in the high-rate 1980s and the 2000s boom-and-bust, and mixed in the 1990s. Over all {res['tier2']['n_starts']['10']} start years the share of 10-year windows won by buying is {pct(res['tier2']['winshare']['10'])}; at 30 years it is {pct(res['tier2']['winshare']['30'])}.</p></div></div>"""
-    body = f"""<div class="hero"><h1>{name}: rent and invest, or buy with a mortgage?</h1><p>Back-test of every possible purchase month using real data: what would a household have in net wealth after 3–20 years, buying versus renting and investing the difference?</p>{SKY}</div>
-{series_note}
-<h2>Tier 1 · Detailed model {'2005' if ES else '2008'}–2025</h2>
-{key_cards(city)}
-<p class="cap">The start-month count shrinks for long horizons (only purchases made early enough have a 15-year outcome), so the long-horizon numbers rest on few, strongly overlapping windows – they are <i>not</i> independent observations.</p>
-<h3>What the markets did</h3><div class="chart"><canvas id="c1"></canvas></div>
-<h3>How often buying wins, by holding period</h3><div class="chart"><canvas id="c2"></canvas></div>
-<h3>Buyer’s advantage after 10 years, by purchase month</h3><div class="chart"><canvas id="c3"></canvas></div>
-<p class="cap">Positive = the buyer ends up richer. Unit: share of the purchase price (0.5 = 50 % of the price).</p>
-{sens_table(city)}
-{tier2}
-<h2>Assumptions</h2>{ASSUMP}
-<h2>Code</h2>{code_block("model.py: the buy-vs-rent engine", "src/model.py")}{code_block("build_data.py: raw data → clean tables", "src/build_data.py")}
-<h2>Sources</h2>{SOURCES}"""
-    tier2_js = """
+        zhrnutie = ("Pri hypotéke s fixnou sadzbou bola kúpa lepšia než prenájom s investovaním v <b>%s</b> testovaných mesiacov pri 5-ročnom horizonte a len v <b>%s</b> pri 10-ročnom. "
+                    "Nákupné náklady okolo 10 %% ceny sa vracajú dlho a investície do svetových akcií v rokoch 2005–2025 rástli rýchlejšie než byty. "
+                    "Výsledok je veľmi citlivý na výšku nájmu (pri výnose %s %% vyhráva kúpa v %s, pri %s %% v %s). "
+                    "Dlhá história od roku 1950 ukazuje, že to nie je pravidlo: v 50.–70. rokoch sa kúpa jasne oplácala.") % (
+            pct(w5), pct(w10), dec(s["yield"][0][0] * 100), pct(s["yield"][0][1]), dec(s["yield"][3][0] * 100), pct(s["yield"][3][1]))
+        hero_img, lead = "ma-malagueta.jpg", "Hlavný prípad: vysoké náklady pri kúpe (≈ 10 %), zdanené zisky z investícií."
+        photos = fig("ma-katedrala.jpg", "Katedrála v Málage") + fig("ma-malagueta.jpg", "Pláž La Malagueta") + fig("ma-pobrezie.jpg", "Pobrežie pri Málage")
+        scope = """<div class="note"><b>Čo dáta zatiaľ nepokrývajú:</b> ceny bytov sú <b>celoštátny index Španielska</b> (BIS), nie samostatný rad pre Málagu. Oficiálne ceny pre samotnú Málagu (MIVAU, Notariado) a nájmy SERPAVI sú ďalšou vrstvou dát. Výsledky preto čítajte ako „celé Španielsko s nákladovou štruktúrou Málagy“.</div>"""
+        tier_note = "2005"
+    else:
+        zhrnutie = ("Bratislava má takmer nulové náklady pri kúpe a zisky z ETF po roku oslobodené od dane. Kúpa vyhrala v <b>%s</b> testovaných mesiacov pri 5-ročnom a v <b>%s</b> pri 10-ročnom horizonte – teda približne <b>vyrovnané</b>. "
+                    "Rozhoduje najmä nájom: pri výnose %s %% vyhráva kúpa len v %s, pri %s %% až v %s. "
+                    "Rýchly rast cien (od 2006 ≈ %s %% ročne) pomáhal kupujúcim, no mnohí z nich kupovali pri vysokých sadzbách po roku 2008.") % (
+            pct(w5), pct(w10), dec(s["yield"][0][0] * 100), pct(s["yield"][0][1]), dec(s["yield"][3][0] * 100), pct(s["yield"][3][1]),
+            dec(res["defaults"]["house_growth_SK"] * 100))
+        hero_img, lead = "ba-hrad.jpg", "Kontrastný prípad: bez dane z prevodu a so ziskami z ETF oslobodenými od dane po roku."
+        photos = fig("ba-hrad.jpg", "Bratislavský hrad") + fig("ba-michalska.jpg", "Michalská brána") + fig("ba-most-snp.jpg", "Most SNP a Dunaj")
+        scope = """<div class="note"><b>Čo dáta zatiaľ nepokrývajú:</b> ceny sú <b>celoštátny index Slovenska</b> (BIS, od 2006) a nájmy celoštátny index HICP, nie údaje iba za Bratislavu. Model od roku 1950 pre Slovensko <b>nie je možný</b> – krajina nie je v dlhodobých databázach a pred rokom 1990 tu nebol trh s bývaním.</div>"""
+        tier_note = "2008"
+
+    tier2 = ""
+    toc = [("zhrnutie", "V skratke"), ("trh", "Čo sa dialo na trhu"), ("horizont", "Kedy sa kúpa oplatí"), ("citlivost", "Citlivosť")]
+    if ES:
+        d = res["tier2"]["decades"]
+        fmt = lambda v: "n/a" if v is None else ("%+.0f %%" % (v * 100))
+        rows = "".join("<tr><td>%s. roky</td><td>%s</td><td>%s</td></tr>" % (k, pct(v["winshare10"]), fmt(v["median10"])) for k, v in d.items())
+        tier2 = """<section id="historia"><h2>Dlhá história 1950–2020 <small>Úroveň 2 · Španielsko celoštátne · reálne hodnoty</small></h2>
+<div class="note"><b>Kvalita dát:</b> úrovne cien bytov v Španielsku existujú až od roku 1971. Roky 1950–1970 databáza JST dopočítava z nájomných ukazovateľov a rady sú značne „skákavé“ (napr. +45 % a potom −23 %). Berte ich ako orientačné. Všetko je <b>reálne</b> (očistené o infláciu), s dnešnými daňami a poplatkami a sadzbou hypotéky = dlhodobý výnos štátnych dlhopisov + 1,5 p. b.</div>
+<div class="chart"><canvas id="t2"></canvas></div><p class="read">Každý bod = rok nákupu. Nad nulou vyhráva kúpa, pod nulou prenájom s investovaním.</p>
+<div class="two"><div class="tw"><table><tr><th>Desaťročie nákupu</th><th>Kúpa vyhráva (10 r.)</th><th>Medián výhody kúpy</th></tr>__ROWS__</table></div>
+<div><p>Kúpa sa výrazne oplácala v 50.–70. rokoch (záporné reálne sadzby, rýchly rast cien). Naopak, pri nákupe v 80. rokoch (vysoké sadzby) a pri boome a páde 2000. rokov sa neoplatila. Z __N__ začiatočných rokov vyhrala kúpa po 10 rokoch v __W10__, po 30 rokoch v __W30__.</p></div></div></section>""".replace("__ROWS__", rows).replace("__N__", str(res["tier2"]["n_starts"]["10"])).replace("__W10__", pct(res["tier2"]["winshare"]["10"])).replace("__W30__", pct(res["tier2"]["winshare"]["30"]))
+        toc.append(("historia", "Dlhá história 1950+"))
+    toc += [("predpoklady", "Predpoklady"), ("kod", "Kód")]
+
+    body = """<div class="hero" __BG__><span class="tag">__TAG__</span><h1>__NAME__: kúpa s hypotékou, alebo prenájom a investovanie?</h1>
+<p>__LEAD__ Pre každý možný mesiac nákupu porovnávame, aký majetok by domácnosť mala po 3–20 rokoch.</p></div>
+<div class="strip">__PHOTOS__</div>
+<section id="zhrnutie"><div class="sum"><b class="h">V skratke</b>__ZHR__</div>__SCOPE__
+<h2>Úroveň 1 · Podrobný model __T__–2025 <small>mesačné údaje, skutočné sadzby, nájmy a výnosy akcií</small></h2>__CARDS__</section>
+<section id="trh"><h2>Čo sa dialo na trhu</h2><div class="chart"><canvas id="c1"></canvas></div>
+<p class="read">Všetky rady sú prepočítané tak, aby prvý mesiac = 100. Čím vyššia čiara, tým viac daná vec vyrástla.</p></section>
+<section id="horizont"><h2>Kedy sa kúpa oplatí <small>podľa počtu rokov, ktoré v byte bývate</small></h2>
+<div class="chart"><canvas id="c2"></canvas></div><p class="read">Stĺpec ukazuje, v koľkých percentách testovaných mesiacov nákupu bola kúpa po danom počte rokov lepšia než prenájom. Nad 50 % = kúpa vyhráva častejšie.</p>
+<h3>Výhoda kúpy po 10 rokoch podľa mesiaca nákupu</h3><div class="chart"><canvas id="c3"></canvas></div>
+<p class="read">Kladná hodnota = kupujúci skončil bohatší. Jednotka: podiel kúpnej ceny (0,5 = 50 % ceny).</p></section>
+<section id="citlivost"><h2>Citlivosť <small>čo sa stane, keď zmeníme najneistejšie vstupy</small></h2>__SENS__</section>
+__TIER2__
+<section id="predpoklady"><h2>Predpoklady modelu</h2>__ASSUMP__</section>
+<section id="kod"><h2>Kód <small>všetko, čo za výsledkami stojí</small></h2>__CODE__</section>
+<p><a href="advisor.html">→ Vyskúšajte poradcu na vlastných číslach</a> · <a href="index.html#zdroje">Zdroje dát</a></p>"""
+    body = body.replace("__BG__", bg(hero_img)).replace("__TAG__", "Hlavný prípad" if ES else "Kontrastný prípad").replace("__NAME__", name) \
+        .replace("__LEAD__", lead).replace("__PHOTOS__", photos).replace("__ZHR__", zhrnutie).replace("__SCOPE__", scope) \
+        .replace("__T__", tier_note).replace("__CARDS__", key_cards(city)).replace("__SENS__", sens_table(city)) \
+        .replace("__TIER2__", tier2).replace("__ASSUMP__", ASSUMP) \
+        .replace("__CODE__", code_block("model.py – výpočet kúpa vs. prenájom", "src/model.py") + code_block("build_data.py – surové dáta → čisté tabuľky", "src/build_data.py"))
+
+    t2js = """
 const T = R.tier2.by_start;
 line('t2', T['10'].map(x=>x[0]), [
- {label:'10-year horizon', data:T['10'].map(x=>x[1]), borderColor:COL.buy},
- {label:'20-year horizon (aligned by start year)', data:T['10'].map(x=>{const f=T['20'].find(y=>y[0]===x[0]);return f?f[1]:null}), borderColor:COL.rent}],
- {ytitle:'Real buyer advantage, share of price', title:'Spain: buy-vs-rent advantage by purchase year (real)'});""" if ES else ""
-    script = f"""
-const S = R.series; const E = R.{city};
+ {label:'Horizont 10 rokov', data:T['10'].map(x=>x[1]), borderColor:COL.buy},
+ {label:'Horizont 20 rokov', data:T['10'].map(x=>{const f=T['20'].find(y=>y[0]===x[0]);return f?f[1]:null}), borderColor:COL.rent}],
+ {ytitle:'Výhoda kúpy (reálne, podiel ceny)', title:'Španielsko: výhoda kúpy podľa roka nákupu'});""" if ES else ""
+    script = """
+const S = R.series; const E = R.__C__;
 line('c1', S.months, [
- {{label:'House price index', data:S.{hp_key}, borderColor:COL.buy}},
- {{label:'Rent index (HICP)', data:S.{rent_key}, borderColor:COL.rent}},
- {{label:'MSCI World EUR (est. total return)', data:S.msci, borderColor:COL.mut, borderDash:[5,4]}}], {{ytitle:'Index, first month = 100'}});
+ {label:'Ceny bytov', data:S.__HP__, borderColor:COL.buy},
+ {label:'Nájomné (HICP)', data:S.__RENT__, borderColor:COL.rent},
+ {label:'MSCI World v EUR (odhad s dividendami)', data:S.msci, borderColor:COL.mut, borderDash:[5,4]}], {ytitle:'Index, prvý mesiac = 100'});
 const hs = Object.keys(E.fixed.winshare);
-new Chart(document.getElementById('c2'), {{type:'bar', data:{{labels:hs.map(h=>h+' y'), datasets:[
- {{label:'Fixed-rate loan', data:hs.map(h=>E.fixed.winshare[h]*100), backgroundColor:COL.buy}},
- {{label:'Variable (Euribor-linked)', data:hs.map(h=>E.variable.winshare[h]*100), backgroundColor:COL.rent}}]}},
- options:{{scales:{{y:{{min:0,max:100,title:{{display:true,text:'% of start months where buying wins'}}}}}}}}}});
+new Chart(document.getElementById('c2'), {type:'bar', data:{labels:hs.map(h=>h+' r.'), datasets:[
+ {label:'Fixná hypotéka', data:hs.map(h=>E.fixed.winshare[h]*100), backgroundColor:COL.buy},
+ {label:'Variabilná (Euribor)', data:hs.map(h=>E.variable.winshare[h]*100), backgroundColor:COL.rent}]},
+ options:{scales:{y:{min:0,max:100,title:{display:true,text:'% mesiacov nákupu, v ktorých vyhráva kúpa'}}}}});
 const b10 = E.fixed.by_start['10'], v10 = E.variable.by_start['10'];
 line('c3', b10.map(x=>x[0]), [
- {{label:'Fixed', data:b10.map(x=>x[1]), borderColor:COL.buy}},
- {{label:'Variable', data:v10.map(x=>x[1]), borderColor:COL.rent}}], {{ytitle:'Buyer minus renter, share of price'}});
-{tier2_js}
-"""
-    return page(slug, name, body, script)
+ {label:'Fixná', data:b10.map(x=>x[1]), borderColor:COL.buy},
+ {label:'Variabilná', data:v10.map(x=>x[1]), borderColor:COL.rent}], {ytitle:'Kupujúci − nájomník, podiel ceny'});
+""".replace("__C__", city).replace("__HP__", hp).replace("__RENT__", rent) + t2js
+    return page(slug, name, body, script, toc)
 
+
+# ------------------------------------------------------------------ úvod
 def index_page():
     m = nn["metrics"]
-    body = f"""<div class="hero"><h1>Mortgage or rent-and-invest?</h1><p>A data-driven comparison for Málaga and Bratislava, built from official series, plus a neural-network advisor. Every number on these pages can be traced to a source, and all code is shown.</p>{SKY}</div>
-<div class="grid"><a class="card" href="malaga.html"><b>Málaga →</b><br><small>Main case. High purchase costs (≈10 %), tax on investment gains. Tier 1 back-test 2005–2025 plus Tier 2 long history 1950–2020.</small></a>
-<a class="card" href="bratislava.html"><b>Bratislava →</b><br><small>Contrast case. Near-zero transaction costs and tax-free ETF gains. Tier 1 only (2008–2025).</small></a>
-<a class="card" href="advisor.html"><b>Advisor →</b><br><small>Enter your situation; a neural network trained on simulated scenarios estimates which option is likelier to leave you richer.</small></a></div>
-<h2>Question</h2><p>Assume income is sufficient for either route. Under which circumstances (holding period, purchase costs, mortgage rate, rent level, market timing) does buying with a mortgage leave a household richer than renting and investing the cash that would have gone into the home?</p>
-<h2>Method in one picture</h2>
-<table><tr><th>Tier</th><th>Window</th><th>Frequency</th><th>Coverage</th><th>Purpose</th></tr>
-<tr><td><b>1 · Detailed</b></td><td>2005 (ES) / 2008 (SK) → 2025</td><td>Monthly</td><td>Málaga &amp; Bratislava cost structures, real mortgage rates, rent index, ETF returns</td><td>Precise break-even analysis and sensitivity</td></tr>
-<tr><td><b>2 · Long history</b></td><td>1950 → 2020</td><td>Annual</td><td>Spain national (JST database). Bratislava/Slovakia not available.</td><td>Does the conclusion survive other eras (inflation, high rates, crises)?</td></tr></table>
-<p>Both tiers use the same engine (<code>model.py</code>): equal cash spending each month, the cheaper option invests the difference, both households are liquidated at each horizon, and the wealth gap is the result.</p>
-<h2>Advisor network</h2>
-<p>Because only ~20 years of local data exist, a network trained on real outcomes alone would overfit. Instead, scenarios are drawn from historically measured ranges, noise of historical size is added to the realised path, and each is labelled by the exact model. On unseen scenarios the network scores <b>{m['holdout_accuracy']*100:.1f} %</b> accuracy (always guessing the majority answer: {m['majority_baseline']*100:.1f} %) and agrees with the exact expected-value model <b>{m['agreement_with_exact']*100:.1f} %</b> of the time. It is a fast surrogate for the model, <b>not</b> an independent forecaster.</p>
-<h2>Known limitations</h2><ul>
-<li>Málaga prices/rents use national Spanish series for now; local official series are not yet loaded.</li>
-<li>Rental yield inputs come from portals (asking rents); official SERPAVI rents are much lower. Treat yield as the key uncertainty.</li>
-<li>MSCI total return is estimated (price index + 2 % dividends).</li>
-<li>Long-horizon back-tests have few, overlapping windows; one decade of data is one observation.</li>
-<li>Modern tax rules are applied retroactively; Spanish pre-1971 housing data is reconstructed.</li>
-<li>Not personal financial advice.</li></ul>
-<h2>Sources</h2>{SOURCES}"""
-    return page("index", "Overview", body)
+    e, k = res["ES"]["fixed"]["winshare"], res["SK"]["fixed"]["winshare"]
+    body = """<div class="hero split"><div class="half" __B1__></div><div class="half" __B2__></div>
+<div class="txt"><h1>Hypotéka, alebo prenájom a investovanie?</h1><p>Dátová analýza pre Málagu a Bratislavu: čo sa viac oplatí a za akých podmienok.</p></div></div>
+<section id="start"><h2>Začnite tu <small>stránky odporúčame prejsť v tomto poradí</small></h2>
+<div class="grid">
+<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>1 · Málaga →</b><br><small>Hlavný prípad. Vysoké náklady pri kúpe (≈ 10 %). Podrobný model 2005–2025 aj dlhá história 1950–2020.</small></div></a>
+<a class="card photo-card" href="bratislava.html"><img src="img/ba-most-snp.jpg" alt="Bratislava"><div><b>2 · Bratislava →</b><br><small>Kontrastný prípad. Takmer nulové náklady pri kúpe, ETF bez dane. Podrobný model 2008–2025.</small></div></a>
+<a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>3 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a></div></section>
+<section id="zistenia"><h2>Hlavné zistenia</h2>
+<div class="tw"><table><tr><th>Mesto</th><th>Kúpa vyhráva po 5 rokoch</th><th>Kúpa vyhráva po 10 rokoch</th><th>Čo za tým stojí</th></tr>
+<tr><td><b>Málaga</b> (Španielsko)</td><td>__E5__</td><td>__E10__</td><td>Nákupné náklady ≈ 10 %, dane z výnosov investícií, výdatný rast svetových akcií.</td></tr>
+<tr><td><b>Bratislava</b> (Slovensko)</td><td>__K5__</td><td>__K10__</td><td>Takmer žiadne nákupné náklady, ETF po roku bez dane, ale vysoké sadzby pri nákupe v rokoch 2008–2012.</td></tr></table></div>
+<p class="cap">Podiel testovaných mesiacov nákupu (fixná hypotéka), v ktorých mal kupujúci na konci vyšší majetok než nájomník. Nad 50 % = kúpa vyhráva častejšie.</p>
+<div class="sum"><b class="h">Hlavná myšlienka</b>O výsledku nerozhoduje „kúpa verzus prenájom“ samo osebe, ale <b>koľko rokov v byte ostanete</b>, <b>aké sú náklady pri kúpe</b>, <b>akú sadzbu získate</b> a <b>aký je nájom vzhľadom na cenu bytu</b>. V Málage prenájom v posledných 20 rokoch zvyčajne vyhrával, v Bratislave je výsledok vyrovnaný a veľmi závisí od výšky nájmu.</div></section>
+<section id="postup"><h2>Ako analýza funguje <small>štyri kroky</small></h2>
+<ol class="steps"><li><b>Dáta.</b> Sťahujeme oficiálne rady: sadzby hypoték a Euribor (ECB), ceny bytov (BIS), nájomné a inflácia (Eurostat/ECB), akciový index MSCI World a dlhú históriu od roku 1870 (databáza JST).</li>
+<li><b>Model.</b> Dve domácnosti míňajú mesačne rovnako. Jedna kúpi byt s hypotékou, druhá prenajíma a rozdiel investuje. Na konci horizontu obe „speňažíme“ a porovnáme majetok.</li>
+<li><b>Spätný test.</b> Model spustíme pre každý možný mesiac nákupu v histórii a pre horizonty 1–20 rokov.</li>
+<li><b>Neurónová sieť.</b> Sieť sa naučí odhadovať výsledok pre ľubovoľné vstupy – aj ktoré v histórii nenastali (poradca).</li></ol>
+<div class="tw"><table><tr><th>Úroveň</th><th>Obdobie</th><th>Frekvencia</th><th>Pokrytie</th><th>Na čo slúži</th></tr>
+<tr><td><b>1 · Podrobná</b></td><td>2005 (ES) / 2008 (SK) → 2025</td><td>mesačne</td><td>Málaga aj Bratislava, skutočné sadzby, nájom, výnosy akcií</td><td>Presný bod zvratu a testy citlivosti</td></tr>
+<tr><td><b>2 · Dlhá história</b></td><td>1950 → 2020</td><td>ročne</td><td>Španielsko celoštátne (JST). Slovensko nie je dostupné.</td><td>Platí záver aj v iných obdobiach (inflácia, vysoké sadzby, krízy)?</td></tr></table></div>
+__GLOS__</section>
+<section id="siet"><h2>Neurónová sieť poradcu</h2>
+<p>Z lokálnej histórie máme len ~20 rokov, čo je pre sieť príliš málo. Preto scenáre simulujeme: rozsahy vstupov berieme z histórie, k „skutočnému“ priebehu pridávame šum historickej veľkosti a každý scenár označí presný model. Na neviditeľných scenároch dosahuje sieť presnosť <b>__ACC__ %</b> (stále tipovanie väčšinovej odpovede: __BASE__ %) a s presným modelom sa zhoduje v <b>__AGR__ %</b> prípadov. Je to rýchla náhrada modelu, <b>nie nezávislá predpoveď</b>.</p></section>
+<section id="obmedzenia"><h2>Známe obmedzenia</h2><ul>
+<li>Ceny a nájmy pre Málagu sú zatiaľ celoštátne španielske rady; lokálne oficiálne rady ešte nie sú načítané.</li>
+<li>Výnos z nájmu pochádza z portálov (ponukové nájmy); oficiálne nájmy SERPAVI sú výrazne nižšie. Je to najväčšia neistota.</li>
+<li>Celková návratnosť MSCI je odhad (cenový index + 2 % dividendy).</li>
+<li>Dlhé horizonty majú málo prekrývajúcich sa okien; jedno desaťročie dát je jedno pozorovanie.</li>
+<li>Dnešné dane sú aplikované spätne; španielske údaje o bývaní pred rokom 1971 sú dopočítané.</li>
+<li>Nejde o finančné poradenstvo.</li></ul></section>
+<section id="zdroje"><h2>Zdroje</h2>__ZDROJE__</section>"""
+    body = body.replace("__B1__", bg("ma-malagueta.jpg")).replace("__B2__", bg("ba-hrad.jpg")) \
+        .replace("__E5__", pct(e["5"])).replace("__E10__", pct(e["10"])).replace("__K5__", pct(k["5"])).replace("__K10__", pct(k["10"])) \
+        .replace("__GLOS__", GLOSAR).replace("__ZDROJE__", ZDROJE) \
+        .replace("__ACC__", dec(m["holdout_accuracy"] * 100)).replace("__BASE__", dec(m["majority_baseline"] * 100)).replace("__AGR__", dec(m["agreement_with_exact"] * 100))
+    return page("index", "Úvod", body, "", [("start", "Začnite tu"), ("zistenia", "Hlavné zistenia"), ("postup", "Ako to funguje"), ("siet", "Neurónová sieť"), ("obmedzenia", "Obmedzenia"), ("zdroje", "Zdroje")])
 
+
+# ------------------------------------------------------------------ poradca
 def advisor_page():
     m = nn["metrics"]
-    js_predict = """// Forward pass of the trained network (9 inputs -> 64 -> 64 -> 2 outputs)
+    d = res["defaults"]
+    js_predict = """// Dopredný prechod natrénovanej siete (9 vstupov -> 64 -> 64 -> 2 výstupy)
 function predict(w, x) {
-  let a = x.map((v, i) => (v - w.mu[i]) / w.sd[i]);           // standardise inputs
+  let a = x.map((v, i) => (v - w.mu[i]) / w.sd[i]);           // štandardizácia vstupov
   w.layers.forEach((L, k) => {
     const out = L.b.slice();
     for (let j = 0; j < out.length; j++)
       for (let i = 0; i < a.length; i++) out[j] += a[i] * L.W[i][j];
-    a = (k < w.layers.length - 1) ? out.map(v => Math.max(0, v)) : out;   // ReLU on hidden layers
+    a = (k < w.layers.length - 1) ? out.map(v => Math.max(0, v)) : out;   // ReLU na skrytých vrstvách
   });
-  return { pBuyWins: 1 / (1 + Math.exp(-a[0])),                // sigmoid -> probability
-           gap: a[1] * w.gapScale };                            // wealth gap, share of price
+  return { pBuyWins: 1 / (1 + Math.exp(-a[0])),                // sigmoid -> pravdepodobnosť
+           gap: a[1] * w.gapScale };                            // rozdiel majetku, podiel ceny
 }"""
-    d = res["defaults"]
-    body = f"""<div class="hero"><h1>Advisor: which option fits your case?</h1><p>Enter your situation. The network estimates the probability that buying with a mortgage leaves you richer than renting and investing after your holding period.</p>{SKY}</div>
-<div class="note"><b>Read this first:</b> this is an educational model, not financial advice. The network imitates the project’s exact model on simulated scenarios (see below); the answer is only as good as the assumptions you enter. Defaults are the 2006–2025 historical averages from the data. Past averages are not forecasts.</div>
-<div class="card"><div class="form">
-<div><label>City</label><select id="city"><option value="0">Málaga (Spain)</option><option value="1">Bratislava (Slovakia)</option></select></div>
-<div><label>Net monthly income (€)</label><input id="inc" type="number" value="3200"></div>
-<div><label>Property price (€)</label><input id="price" type="number" value="280000"></div>
-<div><label>Savings available for deposit + costs (€)</label><input id="dep" type="number" value="70000"></div>
-<div><label>Holding period (years, 2–25)</label><input id="yrs" type="number" value="10" min="2" max="25"></div>
-<div><label>Mortgage rate (% / yr, fixed)</label><input id="rate" type="number" step="0.05" value="{d['mortgage_rate_ES']*100:.2f}"></div>
-<div><label>Expected house price growth (% / yr)</label><input id="hg" type="number" step="0.1" value="{d['house_growth_ES']*100:.1f}"></div>
-<div><label>Expected rent growth (% / yr)</label><input id="rg" type="number" step="0.1" value="{d['rent_growth_ES']*100:.1f}"></div>
-<div><label>Expected investment return (% / yr)</label><input id="eq" type="number" step="0.1" value="{d['equity_return']*100:.1f}"></div>
-<div><label>Gross rental yield (annual rent ÷ price, %)</label><input id="yld" type="number" step="0.1" value="5.0"></div>
-<div><label>Buyer under 35 (Andalucía reduced transfer tax)?</label><select id="u35"><option value="0">No</option><option value="1">Yes</option></select></div>
-</div><button id="go">Estimate</button></div>
-<div id="out" class="card" style="margin-top:16px;display:none"></div>
-<h2>How the network works</h2>
-<p>Nine inputs → two hidden layers of 64 ReLU units → two outputs (probability that buying wins; expected wealth gap). Trained with Adam on {m['n_train']:,} simulated scenarios; evaluated on {m['n_test']:,} unseen ones: <b>{m['holdout_accuracy']*100:.1f} %</b> accuracy vs {m['majority_baseline']*100:.1f} % baseline, Brier score {m['brier']:.3f}, agreement with the exact deterministic model {m['agreement_with_exact']*100:.1f} %. The wealth-gap output is trained on the noise-free exact result: median error {m['gap_mae_median']*100:.1f} % of the price, 90 % of cases within {m['gap_mae_p90']*100:.0f} % of the price (≈ {m['gap_mae_p90']*280000:,.0f} € on a 280,000 € home). When the probability is below 50 % but the gap is positive, that is not a contradiction: gains from buying in good scenarios can be larger than losses in bad ones. Noise in the realised paths uses historical volatility (house {m['sd_house']*100:.1f} %/yr, equity {m['sd_equity']*100:.1f} %/yr), so the output probability reflects market uncertainty.</p>
-<div class="chart"><canvas id="cal"></canvas></div><p class="cap">Calibration on unseen scenarios: when the network says 70 %, buying wins about 70 % of the time if the points follow the diagonal.</p>
-<h2>Code</h2>
-<details open><summary>Browser inference (runs this page)</summary><pre id="jscode">{html.escape(js_predict)}</pre></details>
-{code_block("train_nn.py: simulation, labelling and training (numpy)", "src/train_nn.py")}
-{code_block("model.py: the exact engine that labels the scenarios", "src/model.py")}
-<h2>Limits of the advisor</h2><ul><li>It ignores your personal tax situation beyond the city rules, job risk, and what else you could do with the money.</li><li>Inputs outside the training ranges (e.g. LTV below 50 % or above 90 %, horizons beyond 25 years) are clamped and flagged.</li><li>Two decades of local history cannot validate the network against real outcomes; it is validated against the exact model.</li></ul>"""
-    script = f"""
-const W = {json.dumps(nn)};
-{js_predict}
-const D = {json.dumps(d)};
+    body = """<div class="hero" __BG__><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
+<p>Vyplňte tri krátke časti. Neurónová sieť odhadne pravdepodobnosť, že kúpa s hypotékou vás po zvolenom čase nechá bohatším než prenájom s investovaním.</p></div>
+<div class="note"><b>Najprv si prečítajte:</b> je to vzdelávací model, nie finančné poradenstvo. Sieť napodobňuje presný model projektu na simulovaných scenároch; výsledok je taký dobrý, ako sú vaše predpoklady. Predvyplnené hodnoty sú historické priemery 2006–2025 – nie predpoveď.</div>
+<div class="adv"><div>
+<fieldset><legend>1 · Vaša situácia</legend>
+<label>Mesto<select id="city"><option value="0">Málaga (Španielsko)</option><option value="1">Bratislava (Slovensko)</option></select></label>
+<label>Čistý mesačný príjem (€)<small>Slúži len na kontrolu splátky; predpokladáme, že príjem stačí na oba spôsoby.</small><input id="inc" type="number" value="3200"></label>
+<label>Cena nehnuteľnosti (€)<input id="price" type="number" value="280000"></label>
+<label>Úspory na akontáciu a poplatky (€)<small>Z nich sa platia aj dane a poplatky pri kúpe.</small><input id="dep" type="number" value="70000"></label>
+<label>Ako dlho tam plánujete bývať? (roky, 2–25)<input id="yrs" type="number" value="10" min="2" max="25"></label>
+<label>Kupujúci do 35 rokov? <small>Andalúzia: znížená daň z prevodu.</small><select id="u35"><option value="0">Nie</option><option value="1">Áno</option></select></label></fieldset>
+<fieldset><legend>2 · Hypotéka</legend>
+<label>Úroková sadzba (% ročne, fixná)<small>Predvyplnené: posledná sadzba nových hypoték podľa ECB.</small><input id="rate" type="number" step="0.05" value="__RATE__"></label></fieldset>
+<fieldset><legend>3 · Čo očakávate od trhu</legend>
+<label>Rast cien bytov (% ročne)<input id="hg" type="number" step="0.1" value="__HG__"></label>
+<label>Rast nájmov (% ročne)<input id="rg" type="number" step="0.1" value="__RG__"></label>
+<label>Výnos z investovania (% ročne)<small>Predvyplnené: MSCI World 2006–2025 s odhadom dividend.</small><input id="eq" type="number" step="0.1" value="__EQ__"></label>
+<label>Hrubý výnos z prenájmu (ročný nájom ÷ cena, %)<small>Najneistejší vstup; portálové ponukové nájmy bývajú vyššie než skutočné.</small><input id="yld" type="number" step="0.1" value="5.0"></label></fieldset>
+<button class="go" id="go">Odhadnúť výsledok</button></div>
+<div class="res"><div id="out" class="card"><b>Výsledok sa zobrazí tu.</b><br><small>Upravte vstupy a stlačte „Odhadnúť výsledok“.</small></div></div></div>
+<section id="siet"><h2>Ako sieť funguje</h2>
+<p>Deväť vstupov → dve skryté vrstvy po 64 neurónoch (ReLU) → dva výstupy: pravdepodobnosť, že vyhrá kúpa, a očakávaný rozdiel majetku. Trénovaná algoritmom Adam na __NTR__ simulovaných scenároch, otestovaná na __NTE__ neviditeľných: presnosť <b>__ACC__ %</b> (základ __BASE__ %), Brierovo skóre __BRIER__, zhoda s presným modelom __AGR__ %. Šum v simulovaných cenách používa historickú volatilitu (byty __SDH__ %/rok, akcie __SDE__ %/rok), preto pravdepodobnosť odráža trhovú neistotu.</p>
+<p>Rozdiel majetku sa učil na výsledku bez šumu: medián chyby __GM__ % ceny, v 90 % prípadov do __GP__ % ceny (≈ __GPE__ € pri byte za 280 000 €). Ak je pravdepodobnosť pod 50 %, ale rozdiel kladný, nejde o chybu – zisky z kúpy v dobrých scenároch môžu byť väčšie než straty v zlých.</p>
+<div class="chart"><canvas id="cal"></canvas></div><p class="read">Ak bodky sledujú diagonálu, sieť je kalibrovaná: keď tvrdí 70 %, kúpa naozaj vyhrá asi v 70 % prípadov.</p></section>
+<section id="kod"><h2>Kód</h2>
+<details open><summary>Predikcia v prehliadači (beží na tejto stránke)</summary><pre>__JS__</pre></details>
+__C1____C2__</section>
+<section><h2>Obmedzenia poradcu</h2><ul><li>Ignoruje vašu osobnú daňovú situáciu nad rámec pravidiel mesta, riziko straty práce a iné využitie peňazí.</li><li>Vstupy mimo tréningových rozsahov (LTV pod 50 % alebo nad 90 %, horizont nad 25 rokov) sa orežú a zobrazí sa upozornenie.</li><li>Dvadsať rokov lokálnej histórie nestačí na overenie siete proti skutočným výsledkom; overuje sa voči presnému modelu.</li></ul></section>"""
+    body = body.replace("__BG__", bg("ba-most-snp.jpg")).replace("__RATE__", "%.2f" % (d["mortgage_rate_ES"] * 100)) \
+        .replace("__HG__", "%.1f" % (d["house_growth_ES"] * 100)).replace("__RG__", "%.1f" % (d["rent_growth_ES"] * 100)).replace("__EQ__", "%.1f" % (d["equity_return"] * 100)) \
+        .replace("__NTR__", "{:,}".format(m["n_train"]).replace(",", NB)).replace("__NTE__", "{:,}".format(m["n_test"]).replace(",", NB)) \
+        .replace("__ACC__", dec(m["holdout_accuracy"] * 100)).replace("__BASE__", dec(m["majority_baseline"] * 100)).replace("__BRIER__", dec(m["brier"], 3)) \
+        .replace("__AGR__", dec(m["agreement_with_exact"] * 100)).replace("__SDH__", dec(m["sd_house"] * 100)).replace("__SDE__", dec(m["sd_equity"] * 100)) \
+        .replace("__GM__", dec(m["gap_mae_median"] * 100)).replace("__GP__", "%.0f" % (m["gap_mae_p90"] * 100)).replace("__GPE__", "{:,.0f}".format(m["gap_mae_p90"] * 280000).replace(",", NB)) \
+        .replace("__JS__", html.escape(js_predict)) \
+        .replace("__C1__", code_block("train_nn.py – simulácia, označovanie a trénovanie (numpy)", "src/train_nn.py")) \
+        .replace("__C2__", code_block("model.py – presný výpočet, ktorý označuje scenáre", "src/model.py"))
+    script = """
+const W = __W__;
+__JS__
+const D = __D__;
 const $ = id => document.getElementById(id);
-$('city').onchange = () => {{
+const eur = v => Math.round(v).toLocaleString('sk-SK') + ' €';
+$('city').onchange = () => {
   const sk = $('city').value === '1';
   $('rate').value = ((sk ? D.mortgage_rate_SK : D.mortgage_rate_ES)*100).toFixed(2);
   $('hg').value = ((sk ? D.house_growth_SK : D.house_growth_ES)*100).toFixed(1);
   $('rg').value = ((sk ? D.rent_growth_SK : D.rent_growth_ES)*100).toFixed(1);
   $('yld').value = sk ? 4.5 : 5.0;
-}};
-$('go').onclick = () => {{
+  $('u35').disabled = sk;
+};
+$('go').onclick = () => {
   const sk = +$('city').value, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
   const warn = [];
   const buyCost = sk ? 0.006 : ($('u35').value === '1' ? 0.065 : 0.10);
-  // savings cover deposit AND purchase costs; the rest of the price is the loan
+  // úspory pokryjú akontáciu A náklady pri kúpe; zvyšok ceny je úver
   let ltv = 1 - (dep - buyCost*price) / price;
-  if (ltv > 0.9) {{ warn.push('Your savings are below a 10 % deposit plus costs; LTV clamped to 90 %.'); ltv = 0.9; }}
-  if (ltv < 0.5) {{ warn.push('Deposit is above 50 % of the price; LTV clamped to 50 % (training range).'); ltv = 0.5; }}
+  if (ltv > 0.9) { warn.push('Vaše úspory sú pod 10 % akontácie plus poplatky; LTV bolo obmedzené na 90 %.'); ltv = 0.9; }
+  if (ltv < 0.5) { warn.push('Akontácia presahuje 50 % ceny; LTV bolo obmedzené na 50 % (tréningový rozsah).'); ltv = 0.5; }
   const yrs = Math.min(25, Math.max(2, Math.round(+$('yrs').value)));
   const x = [sk, yrs, ltv, +$('yld').value/100, buyCost, +$('hg').value/100, +$('rg').value/100, +$('eq').value/100, +$('rate').value/100];
   const r = predict(W, x);
   const term = sk ? 30 : 25, i = x[8]/12, n = term*12;
   const pay = price*ltv * (i/(1-Math.pow(1+i,-n)));
   const dsti = pay/inc;
-  if (dsti > 0.40) warn.push('Mortgage payment is ' + (dsti*100).toFixed(0) + ' % of your net income; the project assumes income is sufficient, so check affordability.');
+  if (dsti > 0.40) warn.push('Splátka tvorí ' + (dsti*100).toFixed(0) + ' % čistého príjmu. Projekt predpokladá dostatočný príjem, no overte si dostupnosť úveru.');
   const p = r.pBuyWins, gap = r.gap*price;
-  const verdict = p > 0.6 ? 'Buying is likelier to leave you richer' : p < 0.4 ? 'Renting and investing is likelier to leave you richer' : 'Too close to call';
-  $('out').style.display = 'block';
-  $('out').innerHTML = `<div class="verdict">${{verdict}}</div>
-   <p>Probability buying wins after ${{yrs}} years: <b>${{(p*100).toFixed(0)}} %</b></p>
-   <div class="bar"><i style="width:${{p*100}}%"></i></div><p class="cap">Orange = buy, blue = rent and invest</p>
-   <p>Expected wealth gap (buyer − renter): <b>${{gap>=0?'+':''}}${{Math.round(gap).toLocaleString('en')}} €</b> (nominal, at the end).</p>
-   <p class="cap">Loan: ${{Math.round(price*ltv).toLocaleString('en')}} € at LTV ${{(ltv*100).toFixed(0)}} %, monthly payment ≈ ${{Math.round(pay).toLocaleString('en')}} € (${{(dsti*100).toFixed(0)}} % of net income).</p>
-   ${{warn.map(w=>'<div class="note">'+w+'</div>').join('')}}`;
-}};
-new Chart($('cal'), {{type:'line', data:{{labels:W.calibration.map(c=>c.predicted.toFixed(2)), datasets:[
- {{label:'Observed frequency', data:W.calibration.map(c=>c.observed), borderColor:COL.buy, pointRadius:4}},
- {{label:'Perfect calibration', data:W.calibration.map(c=>c.predicted), borderColor:COL.mut, borderDash:[5,4], pointRadius:0}}]}},
- options:{{scales:{{x:{{title:{{display:true,text:'Predicted probability buying wins'}}}},y:{{min:0,max:1}}}}}}}});
-"""
-    return page("advisor", "Advisor", body, script)
+  const verdict = p > 0.6 ? 'Kúpa vás pravdepodobne nechá bohatším' : p < 0.4 ? 'Prenájom a investovanie vás pravdepodobne nechá bohatším' : 'Príliš tesné na rozhodnutie';
+  $('out').innerHTML = `<div class="verdict">${verdict}</div>
+   <p>Pravdepodobnosť, že po ${yrs} rokoch vyhrá kúpa: <b>${(p*100).toFixed(0)} %</b></p>
+   <div class="bar"><i style="width:${p*100}%"></i></div><p class="cap">Oranžová = kúpa, modrá = prenájom a investovanie</p>
+   <p>Očakávaný rozdiel majetku (kupujúci − nájomník): <b>${gap>=0?'+':'−'}${eur(Math.abs(gap))}</b> (nominálne, na konci).</p>
+   <p class="cap">Úver: ${eur(price*ltv)} pri LTV ${(ltv*100).toFixed(0)} %, mesačná splátka ≈ ${eur(pay)} (${(dsti*100).toFixed(0)} % čistého príjmu).</p>
+   ${warn.map(w=>'<div class="note">'+w+'</div>').join('')}`;
+};
+new Chart($('cal'), {type:'line', data:{labels:W.calibration.map(c=>c.predicted.toFixed(2)), datasets:[
+ {label:'Skutočná početnosť', data:W.calibration.map(c=>c.observed), borderColor:COL.buy, pointRadius:4},
+ {label:'Dokonalá kalibrácia', data:W.calibration.map(c=>c.predicted), borderColor:COL.mut, borderDash:[5,4], pointRadius:0}]},
+ options:{scales:{x:{title:{display:true,text:'Predpovedaná pravdepodobnosť, že vyhrá kúpa'}},y:{min:0,max:1}}}});
+""".replace("__W__", json.dumps(nn)).replace("__JS__", js_predict).replace("__D__", json.dumps(d))
+    return page("advisor", "Poradca", body, script, [("siet", "Ako sieť funguje"), ("kod", "Kód")])
+
 
 for slug, content in [("index", index_page()), ("malaga", city_page("ES")), ("bratislava", city_page("SK")), ("advisor", advisor_page())]:
-    open(os.path.join(SITE, f"{slug}.html"), "w", encoding="utf-8").write(content)
-    print("wrote", slug, len(content) // 1024, "KB")
+    open(os.path.join(SITE, "%s.html" % slug), "w", encoding="utf-8").write(content)
+    print("zapísané", slug, len(content) // 1024, "KB")

@@ -1,15 +1,15 @@
-"""Buy-with-mortgage vs. rent-and-invest: one engine used by both tiers.
+"""Kúpa s hypotékou vs. prenájom a investovanie: jeden výpočtový model pre obe úrovne.
 
-Fairness rule: both households spend the same cash every period. Whoever has the
-cheaper housing cost that period invests the difference in the same equity index.
-At every horizon h we "liquidate" both households and compare final net wealth:
+Pravidlo férovosti: obe domácnosti míňajú v každom období rovnako. Kto má v danom období
+lacnejšie bývanie, rozdiel investuje do rovnakého akciového indexu. Pre každý horizont h obe
+domácnosti „speňažíme“ a porovnáme čistý majetok:
 
-    buyer  = sale price - selling costs - mortgage balance + buyer's side portfolio (after tax)
-    renter = portfolio (after tax)
+    kupujúci = predajná cena - náklady na predaj - zostatok hypotéky + jeho portfólio (po zdanení)
+    nájomník = portfólio (po zdanení)
 
-    advantage = buyer - renter      (> 0  ->  buying wins)
+    výhoda = kupujúci - nájomník      (> 0  ->  kúpa vyhráva)
 
-Everything is expressed per 1.0 of purchase price, so results are independent of price level.
+Všetko je vyjadrené na 1,0 kúpnej ceny, takže výsledok nezávisí od výšky ceny.
 """
 from __future__ import annotations
 from dataclasses import dataclass, replace
@@ -19,44 +19,44 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Params:
-    ltv: float = 0.80            # loan-to-value
-    buy_cost: float = 0.10       # purchase taxes + notary/registry/lawyer (share of price)
-    sell_cost: float = 0.04      # agent + local capital-gain taxes on sale (share of price)
-    upkeep: float = 0.012        # maintenance + property tax + insurance, per year, of current value
-    gross_yield: float = 0.05    # first-year rent / price
+    ltv: float = 0.80            # pomer úveru k cene (LTV)
+    buy_cost: float = 0.10       # dane a poplatky pri kúpe (podiel ceny)
+    sell_cost: float = 0.04      # makléri + miestne dane pri predaji (podiel ceny)
+    upkeep: float = 0.012        # údržba + daň z nehnuteľnosti + poistenie, ročne, z aktuálnej hodnoty
+    gross_yield: float = 0.05    # nájom v 1. roku / cena
     term_years: int = 25
-    spread: float = 0.0          # variable loans: Euribor + spread (calibrated at origination)
-    invest_tax: float = 0.21     # tax on portfolio gains at liquidation
-    invest_tax_free_after: int = 0  # periods (years*ppy) after which portfolio gains are tax-free (0 = never)
-    home_gain_tax: float = 0.0   # tax on home price gain at sale (main-home relief assumed in Spain)
-    home_gain_tax_free_after: int = 0  # periods after which home gain is tax-exempt (SK: 5y)
+    spread: float = 0.0          # variabilné úvery: Euribor + marža (určená pri čerpaní)
+    invest_tax: float = 0.21     # daň zo zisku portfólia pri speňažení
+    invest_tax_free_after: int = 0  # po koľkých obdobiach je zisk z portfólia bez dane (0 = nikdy)
+    home_gain_tax: float = 0.0   # daň zo zisku z predaja bytu (v Španielsku sa predpokladá úľava na hlavné bývanie)
+    home_gain_tax_free_after: int = 0  # po koľkých obdobiach je zisk z bytu oslobodený od dane (SK: 5 rokov)
 
 
 SPAIN = Params()
 SLOVAKIA = Params(
-    buy_cost=0.006,          # cadastre fee + lawyer; no transfer tax since 2005
-    sell_cost=0.03,          # agent fee
-    upkeep=0.0105,           # maintenance ~1% + very low property tax
+    buy_cost=0.006,          # poplatok katastru + právnik; bez dane z prevodu od 2005
+    sell_cost=0.03,          # provízia makléra
+    upkeep=0.0105,           # údržba ≈ 1 % + veľmi nízka daň z nehnuteľnosti
     gross_yield=0.045,
     term_years=30,
-    invest_tax=0.0,          # ETF gains tax-free after >1 year ...
-    home_gain_tax=0.19,      # ... home gain taxed at 19% if sold within 5 years
+    invest_tax=0.0,          # zisky z ETF bez dane po viac ako 1 roku ...
+    home_gain_tax=0.19,      # ... zisk z bytu zdanený 19 % pri predaji do 5 rokov
 )
 
 
 def annuity(rate_per_period: float, n: int) -> float:
-    """Payment per 1.0 of loan."""
+    """Splátka na 1,0 úveru."""
     if abs(rate_per_period) < 1e-12:
         return 1.0 / n
     return rate_per_period / (1 - (1 + rate_per_period) ** -n)
 
 
 def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon: int):
-    """Simulate one start date for `horizon` periods.
+    """Simuluje jeden dátum nákupu na `horizon` období.
 
-    price_g, rent_g, eq_r : per-period growth/returns (length >= horizon), decimals
-    mort_rate_path        : ANNUAL mortgage rate in each period (constant for fixed loans)
-    Returns array adv[1..horizon] of buyer - renter wealth (per 1.0 of price) and break-even info.
+    price_g, rent_g, eq_r : rast cien / nájmov / výnos investície za obdobie (desatinné čísla)
+    mort_rate_path        : ROČNÁ sadzba hypotéky v každom období (pri fixnej konštantná)
+    Vracia pole adv[1..horizon] = majetok kupujúceho - nájomníka (na 1,0 ceny).
     """
     n_total = p.term_years * ppy
     price = 1.0
@@ -64,7 +64,7 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
     loan = p.ltv * 1.0
     bal = loan
     pay_n_left = n_total
-    # initial cash: down payment + purchase costs go to the renter's portfolio
+    # počiatočná hotovosť: akontácia + náklady na kúpu idú do portfólia nájomníka
     renter = (1 - p.ltv) + p.buy_cost
     renter_contrib = renter
     buyer_port = 0.0
@@ -80,19 +80,19 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
         buy_out = pay + p.upkeep / ppy * price
         rent_out = rent
         diff = buy_out - rent_out
-        # growth of existing portfolios first, then new contribution at period end
+        # najprv rast existujúcich portfólií, potom nový vklad na konci obdobia
         renter *= 1 + eq_r[t]
         buyer_port *= 1 + eq_r[t]
-        if diff > 0:               # buying costs more cash -> renter invests the difference
+        if diff > 0:               # kúpa stojí viac hotovosti -> nájomník investuje rozdiel
             renter += diff
             renter_contrib += diff
-        else:                      # renting costs more cash -> buyer invests the difference
+        else:                      # prenájom stojí viac hotovosti -> rozdiel investuje kupujúci
             buyer_port += -diff
             buyer_contrib += -diff
         price *= 1 + price_g[t]
         rent *= 1 + rent_g[t]
         periods = t + 1
-        # liquidation values
+        # hodnoty po speňažení
         tax_free = p.invest_tax_free_after and periods > p.invest_tax_free_after
         tr = 0.0 if tax_free else p.invest_tax
         r_net = renter - tr * max(renter - renter_contrib, 0)
@@ -106,14 +106,14 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
 
 
 def slovakia_flags(p: Params, ppy: int) -> Params:
-    """SK: ETF gains tax-free after 1 year; home gain tax-exempt after 5 years."""
+    """SK: zisky z ETF bez dane po 1 roku; zisk z bytu bez dane po 5 rokoch."""
     return replace(p, invest_tax_free_after=ppy, home_gain_tax_free_after=5 * ppy)
 
 
-# ---------------------------------------------------------------- tier 1 (monthly)
+# ---------------------------------------------------------------- úroveň 1 (mesačne)
 def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | None = None,
                max_years: int = 20, start_from: str | None = None):
-    """Back-test every start month. Returns DataFrame rows=start month, cols=horizon in years (1..)."""
+    """Spätný test pre každý mesiac nákupu. Riadky = mesiac nákupu, stĺpce = horizont v rokoch."""
     if city == "ES":
         hp, hicp_rent, mir = monthly["hp_es"], monthly["hicp_rent_es"], monthly["mir_es"]
         p = p or SPAIN
@@ -123,7 +123,7 @@ def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | Non
         p = slovakia_flags(p or SLOVAKIA, 12)
         start_from = start_from or "2008-01"
     eq = monthly["msci_eur_tr"]
-    ph = hp.pct_change().shift(-1)           # growth from t to t+1
+    ph = hp.pct_change().shift(-1)           # rast z t na t+1
     rg = hicp_rent.pct_change().shift(-1)
     er = eq.pct_change().shift(-1)
     idx = monthly.index
@@ -146,15 +146,15 @@ def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | Non
     return pd.DataFrame(out).T
 
 
-# ---------------------------------------------------------------- tier 2 (annual, JST)
+# ---------------------------------------------------------------- úroveň 2 (ročne, JST)
 def tier2_grid(jst: pd.DataFrame, iso: str = "ESP", p: Params | None = None,
                start_from: int = 1950, max_years: int = 30, rate_spread: float = 0.015):
-    """Annual back-test from `start_from` on JST national data (nominal, local currency)."""
+    """Ročný spätný test od `start_from` na národných dátach JST (nominálne, v miestnej mene)."""
     d = jst[jst.iso == iso].set_index("year").sort_index()
     p = p or SPAIN
-    # house price growth: observed price index where available, JST capital-gain series before
+    # rast cien bytov: JST rad kapitálových ziskov
     g = d["housing_capgain"]
-    ry = d["housing_rent_yd"]            # rent / price (JST)
+    ry = d["housing_rent_yd"]            # nájom / cena (JST)
     rate = (d["ltrate"] / 100 + rate_spread).clip(lower=0.01)
     eq = d["eq_tr"]
     cols = pd.concat([g, ry, rate, eq], axis=1, keys=["g", "ry", "rate", "eq"]).dropna()
@@ -167,20 +167,20 @@ def tier2_grid(jst: pd.DataFrame, iso: str = "ESP", p: Params | None = None,
         if H < 5:
             break
         # rent grows with house prices times yield drift: rent_t = yield_t * price_t
-        P = np.r_[1.0, np.cumprod(1 + cols["g"].values[i + 1:i + H + 1])]   # price at start of year k
-        rent_path = cols["ry"].values[i:i + H + 1] * P                       # rent_k = yield_k * price_k
+        P = np.r_[1.0, np.cumprod(1 + cols["g"].values[i + 1:i + H + 1])]   # cena na začiatku roka k
+        rent_path = cols["ry"].values[i:i + H + 1] * P                       # nájom_k = výnos_k * cena_k
         rg = rent_path[1:] / rent_path[:-1] - 1
         pp = replace(p, gross_yield=cols["ry"].values[i])
         adv = simulate(cols["g"].values[i + 1:i + H + 1], rg, cols["eq"].values[i + 1:i + H + 1],
                        np.full(H, cols["rate"].values[i]), pp, 1, H)
-        # deflate to start-year money so decades with high inflation are comparable
+        # prepočet na peniaze východiskového roku, aby boli desaťročia s vysokou infláciou porovnateľné
         cpi = d["cpi"].reindex(years).values
         out[int(y)] = {h: adv[h - 1] / (cpi[i + h] / cpi[i]) for h in range(1, H + 1)}
     return pd.DataFrame(out).T
 
 
 def break_even(row: pd.Series):
-    """First horizon from which buying stays ahead (None if never)."""
+    """Prvý horizont, od ktorého kúpa ostáva vpredu (None, ak nikdy)."""
     ok = row.dropna()
     wins = ok > 0
     for h in ok.index:
@@ -189,13 +189,13 @@ def break_even(row: pd.Series):
     return None
 
 
-# ---------------------------------------------------------------- vectorised engine (for the network)
+# ---------------------------------------------------------------- vektorizovaný model (pre sieť)
 def simulate_batch(g, rg, eq, rate, ltv, buy_cost, sell_cost, upkeep, gross_yield, term_years,
                    invest_tax, inv_free_after, home_tax, home_free_after, years):
-    """Same economics as `simulate`, monthly, constant annual rates, for N scenarios at once.
+    """Rovnaká ekonomika ako `simulate`, mesačne, konštantné ročné sadzby, pre N scenárov naraz.
 
-    All arguments are arrays of shape (N,) (annual decimal rates). `years` is the horizon (N,)
-    in whole years; returns advantage (buyer - renter) per 1.0 of price at that horizon.
+    Všetky argumenty sú polia tvaru (N,). `years` je horizont v rokoch; vracia výhodu
+    (kupujúci - nájomník) na 1,0 ceny v danom horizonte.
     """
     N = len(g)
     gm = (1 + g) ** (1 / 12) - 1
@@ -213,7 +213,7 @@ def simulate_batch(g, rg, eq, rate, ltv, buy_cost, sell_cost, upkeep, gross_yiel
     H = (years * 12).astype(int)
     result = np.zeros(N)
     for t in range(int(H.max())):
-        # annuity payment on remaining balance
+        # anuitná splátka zo zostatku
         pay = np.where(np.abs(r) < 1e-12, 1.0 / n_left, r / (1 - (1 + r) ** (-n_left))) * bal
         interest = bal * r
         bal = np.maximum(bal - (pay - interest), 0)
