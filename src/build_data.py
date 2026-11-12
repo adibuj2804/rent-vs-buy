@@ -60,6 +60,11 @@ def monthly():
     ma.index = pd.PeriodIndex(ma.index, freq="Q").asfreq("M", "end")
     ma = np.log(ma).reindex(pd.period_range(ma.index.min(), ma.index.max(), freq="M")).interpolate()
     m["hp_ma"] = np.exp(ma)
+    # NBS ponukové ceny bytov a domov, Bratislavský kraj (štvrťročne od 2005-Q1) -> mesačne (rovnako ako vyššie)
+    ba = pd.read_csv(os.path.join(OUT, "bratislava_nbs_quarterly.csv")).set_index("period")["ba"]
+    ba.index = pd.PeriodIndex(ba.index, freq="Q").asfreq("M", "end")
+    ba = np.log(ba).reindex(pd.period_range(ba.index.min(), ba.index.max(), freq="M")).interpolate()
+    m["hp_ba"] = np.exp(ba)
     m.index.name = "month"
     m.to_csv(os.path.join(OUT, "monthly_2003_2025.csv"))
     return m

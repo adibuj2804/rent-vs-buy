@@ -38,6 +38,15 @@ for city in ["ES", "SK"]:
         sens["buy_cost"].append([c, r((g[10].dropna() > 0).mean())])
     res[city]["sensitivity"] = sens
 
+# porovnanie pre Slovensko: celoštátny index BIS namiesto cien Bratislavského kraja (NBS)
+res["SK_national"] = {}
+for rt in ["fixed", "variable"]:
+    g = M.tier1_grid(m, "SK", rt, sk_prices="hp_sk")
+    res["SK_national"][rt] = {
+        "winshare": {str(y): r((g[y].dropna() > 0).mean()) for y in g.columns if g[y].notna().sum()},
+        "n_starts": {str(y): int(g[y].notna().sum()) for y in g.columns if g[y].notna().sum()},
+    }
+
 # porovnanie: rovnaký model, ale s celoštátnym španielskym indexom BIS namiesto cien pre Málagu
 res["ES_national"] = {}
 for rt in ["fixed", "variable"]:
@@ -70,6 +79,8 @@ res["series"] = {
     "hp_es": [r(v) for v in s["hp_es"] / s["hp_es"].iloc[0] * 100],
     "hp_ma": [r(v) for v in s["hp_ma"] / s["hp_ma"].loc["2005-03"] * 100],
     "hp_ma_eur_m2": [r(v) for v in s["hp_ma"]],
+    "hp_ba": [r(v) for v in (s["hp_ba"] / s["hp_ba"].loc["2006-03"] * 100).where(s.index >= pd.Period("2006-03", "M"))],
+    "hp_ba_eur_m2": [r(v) for v in s["hp_ba"]],
     "hp_sk": [r(v) for v in (s["hp_sk"] / s["hp_sk"].loc["2006-01"] * 100).where(s.index >= pd.Period("2006-01", "M"))],
     "rent_es": [r(v) for v in s["hicp_rent_es"] / s["hicp_rent_es"].iloc[0] * 100],
     "rent_sk": [r(v) for v in s["hicp_rent_sk"] / s["hicp_rent_sk"].iloc[0] * 100],
@@ -90,7 +101,7 @@ res["series_long"] = {
 cagr = lambda x, a, b: (x.loc[b] / x.loc[a]) ** (1 / ((b.year - a.year) + (b.month - a.month) / 12)) - 1
 a, b = pd.Period("2006-01", "M"), pd.Period("2025-12", "M")
 res["defaults"] = {
-    "house_growth_ES": r(cagr(m["hp_ma"], a, b)), "house_growth_ES_national": r(cagr(m["hp_es"], a, b)), "house_growth_SK": r(cagr(m["hp_sk"], m["hp_sk"].first_valid_index(), b)),
+    "house_growth_ES": r(cagr(m["hp_ma"], a, b)), "house_growth_ES_national": r(cagr(m["hp_es"], a, b)), "house_growth_SK": r(cagr(m["hp_ba"], a, b)), "house_growth_SK_national": r(cagr(m["hp_sk"], m["hp_sk"].first_valid_index(), b)),
     "rent_growth_ES": r(cagr(m["hicp_rent_es"], a, b)), "rent_growth_SK": r(cagr(m["hicp_rent_sk"], a, b)),
     "equity_return": r(cagr(m["msci_eur_tr"], a, b)),
     "mortgage_rate_ES": r(m["mir_es"].iloc[-1] / 100), "mortgage_rate_SK": r(m["mir_sk"].iloc[-1] / 100),
@@ -104,6 +115,18 @@ res["malaga_facts"] = {
     "first": [str(hm.index[0]), r(hm.iloc[0])], "last_quarter": [q.period.iloc[-1], r(q.total.iloc[-1])],
     "peak": [str(pk), r(hm[pk])], "trough": [str(tr), r(hm[tr])], "peak_to_trough": r(hm[tr] / hm[pk] - 1),
     "valor_tasado_2023": r(v23), "implied_yield_2023": r(8.9 * 12 / v23),   # 8,9 EUR/m2 = SERPAVI 2023 podľa rešerše
+}
+qb = pd.read_csv(os.path.join(ROOT, "data/processed/bratislava_nbs_quarterly.csv"))
+hb = m["hp_ba"].dropna()
+pk2 = hb.loc[:"2023"].idxmax(); tr2 = hb.loc[pk2:"2025"].idxmin()
+pk1 = hb.loc[:"2012"].idxmax(); tr1 = hb.loc[pk1:"2018"].idxmin()
+res["bratislava_facts"] = {
+    "first": [qb.period.iloc[0], r(qb.ba.iloc[0])], "last_quarter": [qb.period.iloc[-1], r(qb.ba.iloc[-1])],
+    "peak1": [str(pk1), r(hb[pk1])], "trough1": [str(tr1), r(hb[tr1])],      # povojnový cyklus 2008–2013
+    "peak2": [str(pk2), r(hb[pk2])], "trough2": [str(tr2), r(hb[tr2])], "peak2_to_trough2": r(hb[tr2] / hb[pk2] - 1),  # šok sadzieb 2022–2024
+    "q4_2025": r(qb[qb.period == "2025-Q4"].ba.iloc[0]),
+    # nájom z rešerše (ponukový, vrátane energií): Bencont 17,37 EUR/m2 a realitymap 15,7 EUR/m2 mesačne
+    "yield_bencont": r(17.37 * 12 / qb[qb.period == "2025-Q4"].ba.iloc[0]), "yield_realitymap": r(15.7 * 12 / qb[qb.period == "2025-Q4"].ba.iloc[0]),
 }
 os.makedirs(os.path.join(ROOT, "site/data"), exist_ok=True)
 json.dump(res, open(os.path.join(ROOT, "site/data/results.json"), "w"))
