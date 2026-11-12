@@ -38,6 +38,15 @@ for city in ["ES", "SK"]:
         sens["buy_cost"].append([c, r((g[10].dropna() > 0).mean())])
     res[city]["sensitivity"] = sens
 
+# porovnanie: rovnaký model, ale s celoštátnym španielskym indexom BIS namiesto cien pre Málagu
+res["ES_national"] = {}
+for rt in ["fixed", "variable"]:
+    g = M.tier1_grid(m, "ES", rt, es_prices="hp_es")
+    res["ES_national"][rt] = {
+        "winshare": {str(y): r((g[y].dropna() > 0).mean()) for y in g.columns if g[y].notna().sum()},
+        "n_starts": {str(y): int(g[y].notna().sum()) for y in g.columns if g[y].notna().sum()},
+    }
+
 # long history, Spain, annual, real (deflated), 1950+
 t2 = M.tier2_grid(jst)
 res["tier2"] = {
@@ -59,6 +68,8 @@ s = m.loc["2005-01":]
 res["series"] = {
     "months": [str(i) for i in s.index],
     "hp_es": [r(v) for v in s["hp_es"] / s["hp_es"].iloc[0] * 100],
+    "hp_ma": [r(v) for v in s["hp_ma"] / s["hp_ma"].loc["2005-03"] * 100],
+    "hp_ma_eur_m2": [r(v) for v in s["hp_ma"]],
     "hp_sk": [r(v) for v in (s["hp_sk"] / s["hp_sk"].loc["2006-01"] * 100).where(s.index >= pd.Period("2006-01", "M"))],
     "rent_es": [r(v) for v in s["hicp_rent_es"] / s["hicp_rent_es"].iloc[0] * 100],
     "rent_sk": [r(v) for v in s["hicp_rent_sk"] / s["hicp_rent_sk"].iloc[0] * 100],
@@ -79,11 +90,20 @@ res["series_long"] = {
 cagr = lambda x, a, b: (x.loc[b] / x.loc[a]) ** (1 / ((b.year - a.year) + (b.month - a.month) / 12)) - 1
 a, b = pd.Period("2006-01", "M"), pd.Period("2025-12", "M")
 res["defaults"] = {
-    "house_growth_ES": r(cagr(m["hp_es"], a, b)), "house_growth_SK": r(cagr(m["hp_sk"], m["hp_sk"].first_valid_index(), b)),
+    "house_growth_ES": r(cagr(m["hp_ma"], a, b)), "house_growth_ES_national": r(cagr(m["hp_es"], a, b)), "house_growth_SK": r(cagr(m["hp_sk"], m["hp_sk"].first_valid_index(), b)),
     "rent_growth_ES": r(cagr(m["hicp_rent_es"], a, b)), "rent_growth_SK": r(cagr(m["hicp_rent_sk"], a, b)),
     "equity_return": r(cagr(m["msci_eur_tr"], a, b)),
     "mortgage_rate_ES": r(m["mir_es"].iloc[-1] / 100), "mortgage_rate_SK": r(m["mir_sk"].iloc[-1] / 100),
     "last_month": str(m.index[-1]),
+}
+hm = m["hp_ma"].dropna()
+pk = hm.loc[:"2012"].idxmax(); tr = hm.loc[pk:"2018"].idxmin()
+q = pd.read_csv(os.path.join(ROOT, "data/processed/malaga_valor_tasado_quarterly.csv"))
+v23 = q[q.period.str.startswith("2023")].total.mean()
+res["malaga_facts"] = {
+    "first": [str(hm.index[0]), r(hm.iloc[0])], "last_quarter": [q.period.iloc[-1], r(q.total.iloc[-1])],
+    "peak": [str(pk), r(hm[pk])], "trough": [str(tr), r(hm[tr])], "peak_to_trough": r(hm[tr] / hm[pk] - 1),
+    "valor_tasado_2023": r(v23), "implied_yield_2023": r(8.9 * 12 / v23),   # 8,9 EUR/m2 = SERPAVI 2023 podľa rešerše
 }
 os.makedirs(os.path.join(ROOT, "site/data"), exist_ok=True)
 json.dump(res, open(os.path.join(ROOT, "site/data/results.json"), "w"))

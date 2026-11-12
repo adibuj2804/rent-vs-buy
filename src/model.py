@@ -112,12 +112,13 @@ def slovakia_flags(p: Params, ppy: int) -> Params:
 
 # ---------------------------------------------------------------- úroveň 1 (mesačne)
 def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | None = None,
-               max_years: int = 20, start_from: str | None = None):
+               max_years: int = 20, start_from: str | None = None, es_prices: str = "hp_ma"):
     """Spätný test pre každý mesiac nákupu. Riadky = mesiac nákupu, stĺpce = horizont v rokoch."""
     if city == "ES":
-        hp, hicp_rent, mir = monthly["hp_es"], monthly["hicp_rent_es"], monthly["mir_es"]
+        # es_prices: "hp_ma" = MIVAU valor tasado pre obec Málaga (od 2005-03), "hp_es" = celoštátny index BIS
+        hp, hicp_rent, mir = monthly[es_prices], monthly["hicp_rent_es"], monthly["mir_es"]
         p = p or SPAIN
-        start_from = start_from or "2005-01"
+        start_from = start_from or ("2005-03" if es_prices == "hp_ma" else "2005-01")
     else:
         hp, hicp_rent, mir = monthly["hp_sk"], monthly["hicp_rent_sk"], monthly["mir_sk"]
         p = slovakia_flags(p or SLOVAKIA, 12)

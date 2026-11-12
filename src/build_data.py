@@ -54,6 +54,12 @@ def monthly():
         s.index = pd.PeriodIndex(s.index, freq="Q").asfreq("M", "end")
         s = np.log(s).reindex(pd.period_range(s.index.min(), s.index.max(), freq="M")).interpolate()
         m[col] = np.exp(s)
+    # MIVAU „valor tasado“ pre obec Málaga (štvrťročne od 2005-Q1) -> mesačne; hodnota sa priradí
+    # poslednému mesiacu štvrťroka (rovnako ako pri BIS), medzi nimi lineárna interpolácia v logaritmoch
+    ma = pd.read_csv(os.path.join(OUT, "malaga_valor_tasado_quarterly.csv")).set_index("period")["total"]
+    ma.index = pd.PeriodIndex(ma.index, freq="Q").asfreq("M", "end")
+    ma = np.log(ma).reindex(pd.period_range(ma.index.min(), ma.index.max(), freq="M")).interpolate()
+    m["hp_ma"] = np.exp(ma)
     m.index.name = "month"
     m.to_csv(os.path.join(OUT, "monthly_2003_2025.csv"))
     return m

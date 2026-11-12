@@ -6,6 +6,7 @@ Statický web + kód v Pythone, ktorý porovnáva „kúpu s hypotékou“ a „
 
 * `site/` – otvorte `site/index.html` (funguje aj zo súboru; na zdieľanie sa publikuje priečinok `site/`, napr. cez GitHub Pages)
 * `src/build_data.py` – surové dáta → čisté tabuľky (`data/processed`)
+* `src/load_malaga.py` – oficiálny rad cien MIVAU pre Málagu z Excelu ministerstva
 * `src/model.py` – výpočet kúpa vs. prenájom (mesačne pre úroveň 1, ročne pre úroveň 2)
 * `src/export_results.py` – spätné testy a citlivosť → `site/data/results.json`
 * `src/train_nn.py` – simulované scenáre, označenie, neurónová sieť v numpy → `site/model/nn_weights.json`

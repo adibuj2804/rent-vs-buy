@@ -132,6 +132,7 @@ ASSUMP = """<div class="tw"><table><tr><th>Predpoklad</th><th>Španielsko / Mál
 
 ZDROJE = """<ul>
 <li><b>ECB Data Portal</b> (SDMX API): Euribor 12M, sadzby hypoték (ES od 2003, SK od 2008), inflácia HICP a „skutočné nájomné“, kurz EUR/USD – <a href="https://data.ecb.europa.eu">data.ecb.europa.eu</a></li>
+<li><b>MIVAU (Ministerio de Vivienda y Agenda Urbana)</b> – <i>valor tasado</i> priemerná hodnota tasovaného bytu v obci Málaga, štvrťročne od 2005-Q1 do 2026-Q2 – <a href="https://apps.fomento.gob.es/BoletinOnline2/sedal/35103500.XLS">tabuľka v Exceli</a></li>
 <li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971, Slovensko od 2006) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
 <li><b>MSCI World</b> – cenový index v USD, denné údaje od 1972 (Yahoo Finance), prepočet na EUR podľa ECB; dividendy 2 % ročne sú <i>odhad</i></li>
 <li><b>Jordà–Schularick–Taylor Macrohistory Database</b>, vydanie R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019): „The Rate of Return on Everything, 1870–2015“, <i>Quarterly Journal of Economics</i></li>
@@ -165,7 +166,7 @@ def city_page(city):
     ES = city == "ES"
     name = "Málaga" if ES else "Bratislava"
     slug = "malaga" if ES else "bratislava"
-    hp, rent = ("hp_es", "rent_es") if ES else ("hp_sk", "rent_sk")
+    hp, rent = ("hp_ma", "rent_es") if ES else ("hp_sk", "rent_sk")
     E = res[city]["fixed"]
     s = res[city]["sensitivity"]
     w5, w10 = E["winshare"]["5"], E["winshare"]["10"]
@@ -177,7 +178,15 @@ def city_page(city):
             pct(w5), pct(w10), dec(s["yield"][0][0] * 100), pct(s["yield"][0][1]), dec(s["yield"][3][0] * 100), pct(s["yield"][3][1]))
         hero_img, lead = "ma-malagueta.jpg", "Hlavný prípad: vysoké náklady pri kúpe (≈ 10 %), zdanené zisky z investícií."
         photos = fig("ma-katedrala.jpg", "Katedrála v Málage") + fig("ma-malagueta.jpg", "Pláž La Malagueta") + fig("ma-pobrezie.jpg", "Pobrežie pri Málage")
-        scope = """<div class="note"><b>Čo dáta zatiaľ nepokrývajú:</b> ceny bytov sú <b>celoštátny index Španielska</b> (BIS), nie samostatný rad pre Málagu. Oficiálne ceny pre samotnú Málagu (MIVAU, Notariado) a nájmy SERPAVI sú ďalšou vrstvou dát. Výsledky preto čítajte ako „celé Španielsko s nákladovou štruktúrou Málagy“.</div>"""
+        mf = res["malaga_facts"]
+        nat = res["ES_national"]["fixed"]["winshare"]
+        scope = """<div class="sum"><b class="h">Aké dáta sú oficiálne pre Málagu</b>
+<ul><li><b>Ceny:</b> oficiálny rad ministerstva (MIVAU) <i>valor tasado</i> – priemerná hodnota tasovaného bytu v obci Málaga, štvrťročne od 2005-Q1 (%s €/m²) do %s (%s €/m²). Sú to hodnoty z bankových tasácií, nie ceny z kúpnych zmlúv.</li>
+<li><b>Prepad a oživenie:</b> od vrcholu (%s, %s €/m²) po dno (%s, %s €/m²) ceny klesli o <b>%s %%</b>; dnes sú o %s %% nad vrcholom z roku 2007.</li>
+<li><b>Nájmy:</b> oficiálny lokálny rad (SERPAVI) sa automaticky stiahnuť nedá (aplikácia chránená reCAPTCHA). Preto rast nájmov je celoštátny index HICP a <b>počiatočný výnos 5 %% je predpoklad</b>. Kontrola: nájom 8,9 €/m² mesačne (SERPAVI 2023, podľa našej rešerše) voči oficiálnej cene za 2023 dáva výnos <b>%s %%</b>, teda blízko predpokladu.</li>
+<li><b>Porovnanie s celoštátnym indexom:</b> keby sme použili ceny celého Španielska (BIS), kúpa by vyhrala v %s mesiacov po 5 rokoch a v %s po 10 rokoch – záver sa teda nemení.</li></ul></div>""" % (
+            dec(mf["first"][1], 0), mf["last_quarter"][0].replace("-", " "), dec(mf["last_quarter"][1], 0), mf["peak"][0], dec(mf["peak"][1], 0), mf["trough"][0], dec(mf["trough"][1], 0),
+            dec(abs(mf["peak_to_trough"]) * 100, 0), dec((mf["last_quarter"][1] / mf["peak"][1] - 1) * 100, 0), dec(mf["implied_yield_2023"] * 100), pct(nat["5"]), pct(nat["10"]))
         tier_note = "2005"
     else:
         zhrnutie = ("Bratislava má takmer nulové náklady pri kúpe a zisky z ETF po roku oslobodené od dane. Kúpa vyhrala v <b>%s</b> testovaných mesiacov pri 5-ročnom a v <b>%s</b> pri 10-ročnom horizonte – teda približne <b>vyrovnané</b>. "
@@ -209,7 +218,7 @@ def city_page(city):
 <div class="strip">__PHOTOS__</div>
 <section id="zhrnutie"><div class="sum"><b class="h">V skratke</b>__ZHR__</div>__SCOPE__
 <h2>Úroveň 1 · Podrobný model __T__–2025 <small>mesačné údaje, skutočné sadzby, nájmy a výnosy akcií</small></h2>__CARDS__</section>
-<section id="trh"><h2>Čo sa dialo na trhu</h2><div class="chart"><canvas id="c1"></canvas></div>
+<section id="trh"><h2>Čo sa dialo na trhu</h2><div class="chart"><canvas id="c1"></canvas></div>__EURCHART__
 <p class="read">Všetky rady sú prepočítané tak, aby prvý mesiac = 100. Čím vyššia čiara, tým viac daná vec vyrástla.</p></section>
 <section id="horizont"><h2>Kedy sa kúpa oplatí <small>podľa počtu rokov, ktoré v byte bývate</small></h2>
 <div class="chart"><canvas id="c2"></canvas></div><p class="read">Stĺpec ukazuje, v koľkých percentách testovaných mesiacov nákupu bola kúpa po danom počte rokov lepšia než prenájom. Nad 50 % = kúpa vyhráva častejšie.</p>
@@ -224,8 +233,11 @@ __TIER2__
         .replace("__LEAD__", lead).replace("__PHOTOS__", photos).replace("__ZHR__", zhrnutie).replace("__SCOPE__", scope) \
         .replace("__T__", tier_note).replace("__CARDS__", key_cards(city)).replace("__SENS__", sens_table(city)) \
         .replace("__TIER2__", tier2).replace("__ASSUMP__", ASSUMP) \
-        .replace("__CODE__", code_block("model.py – výpočet kúpa vs. prenájom", "src/model.py") + code_block("build_data.py – surové dáta → čisté tabuľky", "src/build_data.py"))
+        .replace("__EURCHART__", '<div class="chart"><canvas id="c4"></canvas></div><p class="read">Priemerná tasovaná hodnota bytu v obci Málaga v eurách na m² (oficiálny rad MIVAU).</p>' if ES else "") \
+        .replace("__CODE__", code_block("model.py – výpočet kúpa vs. prenájom", "src/model.py") + code_block("build_data.py – surové dáta → čisté tabuľky", "src/build_data.py") + (code_block("load_malaga.py – oficiálny rad cien pre Málagu z Excelu ministerstva", "src/load_malaga.py") if ES else ""))
 
+    eurjs = """
+line('c4', S.months, [{label:'Valor tasado, Málaga (€/m²)', data:S.hp_ma_eur_m2, borderColor:COL.buy}], {ytitle:'€/m²'});""" if ES else ""
     t2js = """
 const T = R.tier2.by_start;
 line('t2', T['10'].map(x=>x[0]), [
@@ -235,7 +247,7 @@ line('t2', T['10'].map(x=>x[0]), [
     script = """
 const S = R.series; const E = R.__C__;
 line('c1', S.months, [
- {label:'Ceny bytov', data:S.__HP__, borderColor:COL.buy},
+ {label:'__HPLABEL__', data:S.__HP__, borderColor:COL.buy},
  {label:'Nájomné (HICP)', data:S.__RENT__, borderColor:COL.rent},
  {label:'MSCI World v EUR (odhad s dividendami)', data:S.msci, borderColor:COL.mut, borderDash:[5,4]}], {ytitle:'Index, prvý mesiac = 100'});
 const hs = Object.keys(E.fixed.winshare);
@@ -247,7 +259,7 @@ const b10 = E.fixed.by_start['10'], v10 = E.variable.by_start['10'];
 line('c3', b10.map(x=>x[0]), [
  {label:'Fixná', data:b10.map(x=>x[1]), borderColor:COL.buy},
  {label:'Variabilná', data:v10.map(x=>x[1]), borderColor:COL.rent}], {ytitle:'Kupujúci − nájomník, podiel ceny'});
-""".replace("__C__", city).replace("__HP__", hp).replace("__RENT__", rent) + t2js
+""".replace("__C__", city).replace("__HP__", hp).replace("__RENT__", rent).replace("__HPLABEL__", "Ceny bytov v Málage (MIVAU)" if ES else "Ceny bytov (SR, BIS)") + t2js + eurjs
     return page(slug, name, body, script, toc)
 
 
@@ -280,7 +292,7 @@ __GLOS__</section>
 <section id="siet"><h2>Neurónová sieť poradcu</h2>
 <p>Z lokálnej histórie máme len ~20 rokov, čo je pre sieť príliš málo. Preto scenáre simulujeme: rozsahy vstupov berieme z histórie, k „skutočnému“ priebehu pridávame šum historickej veľkosti a každý scenár označí presný model. Na neviditeľných scenároch dosahuje sieť presnosť <b>__ACC__ %</b> (stále tipovanie väčšinovej odpovede: __BASE__ %) a s presným modelom sa zhoduje v <b>__AGR__ %</b> prípadov. Je to rýchla náhrada modelu, <b>nie nezávislá predpoveď</b>.</p></section>
 <section id="obmedzenia"><h2>Známe obmedzenia</h2><ul>
-<li>Ceny a nájmy pre Málagu sú zatiaľ celoštátne španielske rady; lokálne oficiálne rady ešte nie sú načítané.</li>
+<li>Ceny pre Málagu sú oficiálne (MIVAU valor tasado – hodnoty z tasácií, nie z kúpnych zmlúv). Nájmy pre Málagu však ešte nie sú načítané (SERPAVI sa nedá stiahnuť automaticky), takže rast nájmov je celoštátny. Pre Bratislavu sú ceny aj nájmy celoštátne.</li>
 <li>Výnos z nájmu pochádza z portálov (ponukové nájmy); oficiálne nájmy SERPAVI sú výrazne nižšie. Je to najväčšia neistota.</li>
 <li>Celková návratnosť MSCI je odhad (cenový index + 2 % dividendy).</li>
 <li>Dlhé horizonty majú málo prekrývajúcich sa okien; jedno desaťročie dát je jedno pozorovanie.</li>
