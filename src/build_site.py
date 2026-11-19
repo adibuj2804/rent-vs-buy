@@ -66,7 +66,7 @@ h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>su
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 """
 
-NAV = [("index", "Úvod"), ("sprava", "Správa a overenie"), ("advisor", "Poradca"), ("malaga", "Málaga (doplnok)"), ("bratislava", "Bratislava (doplnok)")]
+NAV = [("index", "Úvod"), ("sprava", "Správa a overenie"), ("advisor", "Poradca"), ("malaga", "Málaga (mesačný model)")]
 
 
 def page(slug, title, body, script="", toc=None):
@@ -119,27 +119,26 @@ GLOSAR = """<details><summary>Slovníček pojmov (kliknite pre rozbalenie)</summ
 <tr><td><b>Reálne hodnoty</b></td><td>Prepočítané na peniaze východiskového roku (očistené o infláciu).</td></tr>
 <tr><td><b>Výhoda kúpy</b></td><td>Majetok kupujúceho mínus majetok nájomníka na konci horizontu. Kladné číslo = kúpa vyhráva. Uvádza sa ako podiel kúpnej ceny.</td></tr></table></details>"""
 
-ASSUMP = """<div class="tw"><table><tr><th>Predpoklad</th><th>Španielsko / Málaga</th><th>Slovensko / Bratislava</th><th>Zdroj / základ</th></tr>
-<tr><td>LTV</td><td colspan="2">80 %</td><td>Bežná prax bánk (ES); limity NBS 80–90 % (SK)</td></tr>
-<tr><td>Dane a poplatky pri kúpe</td><td>10 %</td><td>0,6 %</td><td>ES: daň z prevodu ITP 7 % + notár, register (Junta de Andalucía). SK: bez dane z prevodu, poplatok katastru + právnik</td></tr>
-<tr><td>Náklady pri predaji</td><td>4 %</td><td>3 % (+19 % daň zo zisku pri predaji do 5 rokov)</td><td>Provízia makléra, obecná plusvalía</td></tr>
-<tr><td>Údržba + daň z nehnuteľnosti</td><td>1,2 % hodnoty ročne</td><td>1,05 % hodnoty ročne</td><td>IBI, poplatky spoločenstva, opravy</td></tr>
-<tr><td>Splatnosť úveru</td><td>30 rokov</td><td>30 rokov</td><td>INE (priemer), maximum NBS</td></tr>
-<tr><td>Hrubý výnos z prenájmu v 1. roku</td><td>5,0 %</td><td>4,5 %</td><td>Ponukové nájmy z portálov (idealista, realitymap) – <b>nie oficiálne dáta</b>; preto robíme test citlivosti</td></tr>
-<tr><td>Rast nájmu</td><td colspan="2">Skutočný index HICP „skutočné nájomné za bývanie“</td><td>ECB / Eurostat</td></tr>
-<tr><td>Sadzba hypotéky</td><td colspan="2">Sadzba nových hypoték v čase kúpy (ECB MIR); buď fixná na celú dobu, alebo Euribor 12M + pôvodná marža</td><td>ECB MIR, Euribor</td></tr>
-<tr><td>Investovanie</td><td colspan="2">MSCI World v EUR + 2 % odhadované čisté dividendy</td><td>Cenový index MSCI, <b>dividendy sú náš odhad</b></td></tr>
-<tr><td>Daň zo ziskov z investícií</td><td>21 % pri speňažení (plochá aproximácia 19–30 %)</td><td>0 % (po 1 roku oslobodené)</td><td>AEAT; zákon o dani z príjmov SR</td></tr>
-<tr><td>Pravidlo férovosti</td><td colspan="3">Obe domácnosti míňajú mesačne rovnako. Kto má bývanie lacnejšie, rozdiel investuje. Nájomník navyše hneď na začiatku investuje vlastné zdroje a poplatky, ktoré by išli do kúpy.</td></tr></table></div>"""
+ASSUMP = """<div class="tw"><table><tr><th>Predpoklad</th><th>Hodnota (Španielsko / Málaga)</th><th>Zdroj / základ</th></tr>
+<tr><td>LTV</td><td>80 %</td><td>Bežná prax bánk</td></tr>
+<tr><td>Dane a poplatky pri kúpe</td><td>10 %</td><td>Daň z prevodu ITP 7 % + notár, register (Junta de Andalucía)</td></tr>
+<tr><td>Náklady pri predaji</td><td>4 %</td><td>Provízia makléra, obecná plusvalía</td></tr>
+<tr><td>Údržba + daň z nehnuteľnosti</td><td>1,2 % hodnoty ročne</td><td>IBI, poplatky spoločenstva, opravy</td></tr>
+<tr><td>Splatnosť úveru</td><td>30 rokov</td><td>Zadanie projektu</td></tr>
+<tr><td>Hrubý výnos z prenájmu v 1. roku</td><td>5,0 % (mesačný model); v dlhej histórii skutočný výnos z JST</td><td>Ponukové nájmy z portálov (idealista) – <b>nie oficiálne dáta</b>; preto robíme test citlivosti</td></tr>
+<tr><td>Rast nájmu</td><td>Skutočný index HICP „skutočné nájomné za bývanie“</td><td>ECB / Eurostat</td></tr>
+<tr><td>Sadzba hypotéky</td><td>Sadzba nových hypoték v čase kúpy (ECB MIR), fixná alebo Euribor 12M + marža; v dlhej histórii dlhodobá sadzba + 1,5 p. b.</td><td>ECB MIR, Euribor, JST</td></tr>
+<tr><td>Investovanie</td><td>MSCI World v EUR + 2 % odhadované čisté dividendy (mesačný model); španielske akcie (JST) v dlhej histórii</td><td>Cenový index MSCI, <b>dividendy sú náš odhad</b></td></tr>
+<tr><td>Daň zo ziskov z investícií</td><td>21 % pri speňažení (plochá aproximácia 19–30 %)</td><td>AEAT</td></tr>
+<tr><td>Pravidlo férovosti</td><td colspan="2">Obe domácnosti míňajú na bývanie rovnako. Kto má bývanie lacnejšie, rozdiel investuje. Nájomník navyše hneď na začiatku investuje vlastné zdroje a poplatky, ktoré by išli do kúpy.</td></tr></table></div>"""
 
 ZDROJE = """<ul>
-<li><b>ECB Data Portal</b> (SDMX API): Euribor 12M, sadzby hypoték (ES od 2003, SK od 2008), inflácia HICP a „skutočné nájomné“, kurz EUR/USD – <a href="https://data.ecb.europa.eu">data.ecb.europa.eu</a></li>
+<li><b>ECB Data Portal</b> (SDMX API): Euribor 12M, sadzby hypoték (od 2003), inflácia HICP a „skutočné nájomné“, kurz EUR/USD – <a href="https://data.ecb.europa.eu">data.ecb.europa.eu</a></li>
 <li><b>MIVAU (Ministerio de Vivienda y Agenda Urbana)</b> – <i>valor tasado</i> priemerná hodnota tasovaného bytu v obci Málaga, štvrťročne od 2005-Q1 do 2026-Q2 – <a href="https://apps.fomento.gob.es/BoletinOnline2/sedal/35103500.XLS">tabuľka v Exceli</a></li>
-<li><b>Národná banka Slovenska</b> – ceny nehnuteľností na bývanie podľa krajov v €/m², štvrťročne od 2005-Q1 do 2026-Q3 (ponukové ceny) – <a href="https://nbs.sk/export/sk/real-estate-price-by-region/csv">CSV</a></li>
-<li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971, Slovensko od 2006) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
+<li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
 <li><b>MSCI World</b> – cenový index v USD, denné údaje od 1972 (Yahoo Finance), prepočet na EUR podľa ECB; dividendy 2 % ročne sú <i>odhad</i></li>
 <li><b>Jordà–Schularick–Taylor Macrohistory Database</b>, vydanie R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019): „The Rate of Return on Everything, 1870–2015“, <i>Quarterly Journal of Economics</i></li>
-<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT, katastrálny portál SR / NBS – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
+<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT, katastrálny portál SR – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
 <li>Úplný zoznam sérií so začiatkami a slabinami: <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">data/SOURCES.md</a></li></ul>"""
 
 
@@ -273,34 +272,34 @@ line('c3', b10.map(x=>x[0]), [
 # ------------------------------------------------------------------ úvod
 def index_page():
     m = nn["metrics"]
-    e, k = res["ES"]["fixed"]["winshare"], res["SK"]["fixed"]["winshare"]
+    e = res["ES"]["fixed"]["winshare"]
     body = """<div class="hero split"><div class="half" __B1__></div><div class="half" __B2__></div>
-<div class="txt"><h1>Hypotéka, alebo prenájom a investovanie?</h1><p>Dátová analýza pre Málagu a Bratislavu: čo sa viac oplatí a za akých podmienok.</p></div></div>
+<div class="txt"><h1>Hypotéka, alebo prenájom a investovanie?</h1><p>Dátová analýza pre Španielsko a Málagu: čo sa viac oplatí a za akých podmienok.</p></div></div>
 <section id="start"><h2>Začnite tu <small>stránky odporúčame prejsť v tomto poradí</small></h2>
 <div class="grid">
 <a class="card photo-card" href="sprava.html"><img src="img/ma-malagueta.jpg" alt="Správa"><div><b>1 · Správa a overenie →</b><br><small>Jadro projektu: presné stratégie, dáta od 1950, model-poradca a jeho vyhodnotenie pre každý počiatočný rok. Notebook na stiahnutie.</small></div></a>
 <a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>2 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a>
-<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>3 · Málaga (doplnok) →</b><br><small>Podrobný mesačný model 2005–2025 s oficiálnymi cenami MIVAU.</small></div></a>
-<a class="card photo-card" href="bratislava.html"><img src="img/ba-most-snp.jpg" alt="Bratislava"><div><b>4 · Bratislava (doplnok) →</b><br><small>Kontrastný prípad s cenami NBS, 2008–2025.</small></div></a></div></section>
+<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>3 · Málaga →</b><br><small>Podrobný mesačný model 2005–2025 s oficiálnymi cenami MIVAU.</small></div></a>
+</div></section>
 <section id="zistenia"><h2>Hlavné zistenia</h2>
 <div class="tw"><table><tr><th>Mesto</th><th>Kúpa vyhráva po 5 rokoch</th><th>Kúpa vyhráva po 10 rokoch</th><th>Čo za tým stojí</th></tr>
 <tr><td><b>Málaga</b> (Španielsko)</td><td>__E5__</td><td>__E10__</td><td>Nákupné náklady ≈ 10 %, dane z výnosov investícií, výdatný rast svetových akcií.</td></tr>
-<tr><td><b>Bratislava</b> (Slovensko)</td><td>__K5__</td><td>__K10__</td><td>Takmer žiadne nákupné náklady, ETF po roku bez dane, ale vysoké sadzby pri nákupe v rokoch 2008–2012.</td></tr></table></div>
+</table></div>
 <p class="cap">Podiel testovaných mesiacov nákupu (fixná hypotéka), v ktorých mal kupujúci na konci vyšší majetok než nájomník. Nad 50 % = kúpa vyhráva častejšie.</p>
-<div class="sum"><b class="h">Hlavná myšlienka</b>O výsledku nerozhoduje „kúpa verzus prenájom“ samo osebe, ale <b>koľko rokov v byte ostanete</b>, <b>aké sú náklady pri kúpe</b>, <b>akú sadzbu získate</b> a <b>aký je nájom vzhľadom na cenu bytu</b>. V Málage prenájom v posledných 20 rokoch zvyčajne vyhrával, v Bratislave je výsledok vyrovnaný a veľmi závisí od výšky nájmu.</div></section>
+<div class="sum"><b class="h">Hlavná myšlienka</b>O výsledku nerozhoduje „kúpa verzus prenájom“ samo osebe, ale <b>koľko rokov v byte ostanete</b>, <b>aké sú náklady pri kúpe</b>, <b>akú sadzbu získate</b> a <b>aký je nájom vzhľadom na cenu bytu</b>. V Málage prenájom v posledných 20 rokoch zvyčajne vyhrával, a výsledok veľmi závisí od výšky nájmu.</div></section>
 <section id="postup"><h2>Ako analýza funguje <small>štyri kroky</small></h2>
 <ol class="steps"><li><b>Dáta.</b> Sťahujeme oficiálne rady: sadzby hypoték a Euribor (ECB), ceny bytov (BIS), nájomné a inflácia (Eurostat/ECB), akciový index MSCI World a dlhú históriu od roku 1870 (databáza JST).</li>
 <li><b>Model.</b> Dve domácnosti míňajú mesačne rovnako. Jedna kúpi byt s hypotékou, druhá prenajíma a rozdiel investuje. Na konci horizontu obe „speňažíme“ a porovnáme majetok.</li>
 <li><b>Spätný test.</b> Model spustíme pre každý možný mesiac nákupu v histórii a pre horizonty 1–20 rokov.</li>
 <li><b>Neurónová sieť.</b> Sieť sa naučí odhadovať výsledok pre ľubovoľné vstupy – aj ktoré v histórii nenastali (poradca).</li></ol>
 <div class="tw"><table><tr><th>Úroveň</th><th>Obdobie</th><th>Frekvencia</th><th>Pokrytie</th><th>Na čo slúži</th></tr>
-<tr><td><b>1 · Podrobná</b></td><td>2005 (ES) / 2008 (SK) → 2025</td><td>mesačne</td><td>Málaga aj Bratislava, skutočné sadzby, nájom, výnosy akcií</td><td>Presný bod zvratu a testy citlivosti</td></tr>
-<tr><td><b>2 · Dlhá história</b></td><td>1950 → 2025</td><td>ročne</td><td>Španielsko celoštátne (JST do 2020, potom ECB/BIS – predĺženie). Slovensko nie je dostupné.</td><td>Platí záver aj v iných obdobiach (inflácia, vysoké sadzby, krízy)?</td></tr></table></div>
+<tr><td><b>1 · Podrobná</b></td><td>2005 → 2025</td><td>mesačne</td><td>Málaga, skutočné sadzby, nájom, výnosy akcií</td><td>Presný bod zvratu a testy citlivosti</td></tr>
+<tr><td><b>2 · Dlhá história</b></td><td>1950 → 2025</td><td>ročne</td><td>Španielsko celoštátne (JST do 2020, potom ECB/BIS – predĺženie).</td><td>Platí záver aj v iných obdobiach (inflácia, vysoké sadzby, krízy)?</td></tr></table></div>
 __GLOS__</section>
 <section id="siet"><h2>Neurónová sieť poradcu</h2>
 <p>Z lokálnej histórie máme len ~20 rokov, čo je pre sieť príliš málo. Preto scenáre simulujeme: rozsahy vstupov berieme z histórie, k „skutočnému“ priebehu pridávame šum historickej veľkosti a každý scenár označí presný model. Na neviditeľných scenároch dosahuje sieť presnosť <b>__ACC__ %</b> (stále tipovanie väčšinovej odpovede: __BASE__ %) a s presným modelom sa zhoduje v <b>__AGR__ %</b> prípadov. Je to rýchla náhrada modelu, <b>nie nezávislá predpoveď</b>.</p></section>
 <section id="obmedzenia"><h2>Známe obmedzenia</h2><ul>
-<li>Ceny pre Málagu sú oficiálne (MIVAU valor tasado – hodnoty z tasácií, nie z kúpnych zmlúv). Nájmy pre Málagu ešte nie sú načítané (SERPAVI sa nedá stiahnuť automaticky). Ceny pre Bratislavu sú rad NBS za Bratislavský kraj (ponukové ceny, nie ceny z kúpnych zmlúv); oficiálny rad nájmov pre Bratislavu neexistuje. Rast nájmov je v oboch mestách celoštátny index HICP.</li>
+<li>Ceny pre Málagu sú oficiálne (MIVAU valor tasado – hodnoty z tasácií, nie z kúpnych zmlúv). Nájmy pre Málagu ešte nie sú načítané (SERPAVI sa nedá stiahnuť automaticky). Rast nájmov je celoštátny index HICP.</li>
 <li>Výnos z nájmu pochádza z portálov (ponukové nájmy); oficiálne nájmy SERPAVI sú výrazne nižšie. Je to najväčšia neistota.</li>
 <li>Celková návratnosť MSCI je odhad (cenový index + 2 % dividendy).</li>
 <li>Dlhé horizonty majú málo prekrývajúcich sa okien; jedno desaťročie dát je jedno pozorovanie.</li>
@@ -308,7 +307,7 @@ __GLOS__</section>
 <li>Nejde o finančné poradenstvo.</li></ul></section>
 <section id="zdroje"><h2>Zdroje</h2>__ZDROJE__</section>"""
     body = body.replace("__B1__", bg("ma-malagueta.jpg")).replace("__B2__", bg("ba-hrad.jpg")) \
-        .replace("__E5__", pct(e["5"])).replace("__E10__", pct(e["10"])).replace("__K5__", pct(k["5"])).replace("__K10__", pct(k["10"])) \
+        .replace("__E5__", pct(e["5"])).replace("__E10__", pct(e["10"])) \
         .replace("__GLOS__", GLOSAR).replace("__ZDROJE__", ZDROJE) \
         .replace("__ACC__", dec(m["holdout_accuracy"] * 100)).replace("__BASE__", dec(m["majority_baseline"] * 100)).replace("__AGR__", dec(m["agreement_with_exact"] * 100))
     return page("index", "Úvod", body, "", [("start", "Začnite tu"), ("zistenia", "Hlavné zistenia"), ("postup", "Ako to funguje"), ("siet", "Neurónová sieť"), ("obmedzenia", "Obmedzenia"), ("zdroje", "Zdroje")])
@@ -335,7 +334,7 @@ function predict(w, x) {
 <div class="note"><b>Najprv si prečítajte:</b> je to vzdelávací model, nie finančné poradenstvo. Sieť napodobňuje presný model projektu na simulovaných scenároch; výsledok je taký dobrý, ako sú vaše predpoklady. Predvyplnené hodnoty sú historické priemery 2006–2025 – nie predpoveď.</div>
 <div class="adv"><div>
 <fieldset><legend>1 · Vaša situácia</legend>
-<label>Mesto<select id="city"><option value="0">Málaga (Španielsko)</option><option value="1">Bratislava (Slovensko)</option></select></label>
+<p class="cap">Mesto: Málaga (Španielsko). Predvyplnené hodnoty sú pre Španielsko.</p>
 <label>Čistý mesačný príjem (€)<small>Slúži len na kontrolu splátky; predpokladáme, že príjem stačí na oba spôsoby.</small><input id="inc" type="number" value="3200"></label>
 <label>Cena nehnuteľnosti (€)<input id="price" type="number" value="280000"></label>
 <label>Úspory na akontáciu a poplatky (€)<small>Z nich sa platia aj dane a poplatky pri kúpe.</small><input id="dep" type="number" value="70000"></label>
@@ -373,16 +372,8 @@ __JS__
 const D = __D__;
 const $ = id => document.getElementById(id);
 const eur = v => Math.round(v).toLocaleString('sk-SK') + ' €';
-$('city').onchange = () => {
-  const sk = $('city').value === '1';
-  $('rate').value = ((sk ? D.mortgage_rate_SK : D.mortgage_rate_ES)*100).toFixed(2);
-  $('hg').value = ((sk ? D.house_growth_SK : D.house_growth_ES)*100).toFixed(1);
-  $('rg').value = ((sk ? D.rent_growth_SK : D.rent_growth_ES)*100).toFixed(1);
-  $('yld').value = sk ? 4.5 : 5.0;
-  $('u35').disabled = sk;
-};
 $('go').onclick = () => {
-  const sk = +$('city').value, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
+  const sk = 0, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
   const warn = [];
   const buyCost = sk ? 0.006 : ($('u35').value === '1' ? 0.065 : 0.10);
   // úspory pokryjú akontáciu A náklady pri kúpe; zvyšok ceny je úver
@@ -441,7 +432,7 @@ Pre Španielsko máme dáta od roku 1950 do 2025. V rokoch 1950–2015 (horizont
 Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __E30__ (30 r.) rokov; základná stratégia „vždy kúpa“ v __B10__, __B20__ a __B30__. <b>Je to len mierne lepšie než stále tipovanie jednej odpovede, pri 30 rokoch horšie</b> – výsledok uvádzame bez príkras.</div>
 <div class="tw"><table><tr><th>Časť zadania</th><th>Kde to je</th><th>Stav</th></tr>
 <tr><td>1 · Stratégie</td><td><a href="#strategie">Stratégie</a></td><td>Hotovo – presný návod pre oba scenáre, hypotéka 30 rokov</td></tr>
-<tr><td>2 · Dáta od roku 1950</td><td><a href="#data">Dáta</a></td><td>Španielsko 1950–2025 (JST + predĺženie). Slovensko pred rokom 2005 neexistuje</td></tr>
+<tr><td>2 · Dáta od roku 1950</td><td><a href="#data">Dáta</a></td><td>Španielsko 1950–2025 (JST + predĺženie).</td></tr>
 <tr><td>3 · Model-poradca</td><td><a href="#model">Model</a>, <a href="advisor.html">Poradca</a></td><td>Odhad z histórie + simulácia; neurónová sieť na webe</td></tr>
 <tr><td>4 · Vyhodnotenie</td><td><a href="#overenie">Overenie</a></td><td>Pre každý rok XY odpoveď len z dát do XY vs. skutočný víťaz</td></tr>
 <tr><td>5 · Jeden balík</td><td><a href="#balik">Balík</a></td><td>Notebook, ktorý sa spustí bez inštalácie a bez sťahovania dát</td></tr></table></div></section>
@@ -470,7 +461,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <tr><td>Inflácia</td><td>1950–2025</td><td>JST CPI / HICP (ECB)</td><td>–</td></tr>
 <tr><td>Dane a náklady</td><td>celé obdobie</td><td>dnešné pravidlá (AEAT, Junta de Andalucía)</td><td>Spätná aplikácia; nepravdivá pre roky pred 80. rokmi</td></tr></table></div>
 <details><summary>Predpoklady modelu – tabuľka (dane, náklady, sadzby)</summary>__ASSUMP__</details>
-<p>Podrobne, vrátane Slovenska, Málagy (MIVAU) a Bratislavy (NBS), je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. <b>Slovensko</b> je v rade od roku 2005, preto pre ťažisko tejto správy (dlhá história) používame Španielsko. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
+<p>Podrobne je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. Správa sa venuje Španielsku, kde máme dlhý rad od roku 1950. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
 
 <section id="model"><h2>3 · Model <small>čo berie na vstupe a ako dospeje k odpovedi</small></h2>
 <p><b>Model „odhad z histórie“</b> (typ B zo zadania – sústava malých modelov + simulácia) pracuje len s dátami do roku XY:</p>
@@ -530,6 +521,6 @@ drawWF('10');
     return page("sprava", "Správa a overenie", body, script, [("prehlad", "V skratke"), ("strategie", "Stratégie"), ("data", "Dáta"), ("model", "Model"), ("overenie", "Vyhodnotenie"), ("dnes", "Dnes"), ("balik", "Balík")])
 
 
-for slug, content in [("index", index_page()), ("malaga", city_page("ES")), ("bratislava", city_page("SK")), ("advisor", advisor_page()), ("sprava", sprava_page())]:
+for slug, content in [("index", index_page()), ("malaga", city_page("ES")), ("advisor", advisor_page()), ("sprava", sprava_page())]:
     open(os.path.join(SITE, "%s.html" % slug), "w", encoding="utf-8").write(content)
     print("zapísané", slug, len(content) // 1024, "KB")

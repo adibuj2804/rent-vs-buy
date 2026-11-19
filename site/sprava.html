@@ -46,14 +46,14 @@ h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>su
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script></head><body>
-<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="sprava.html" class="on">Správa a overenie</a><a href="advisor.html" class="">Poradca</a><a href="malaga.html" class="">Málaga (doplnok)</a><a href="bratislava.html" class="">Bratislava (doplnok)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#prehlad">V skratke</a><a href="#strategie">Stratégie</a><a href="#data">Dáta</a><a href="#model">Model</a><a href="#overenie">Vyhodnotenie</a><a href="#dnes">Dnes</a><a href="#balik">Balík</a></div></nav><main><div class="hero" style="background-image:url(img/ma-pobrezie.jpg)"><span class="tag">Správa k zadaniu</span><h1>Podnájom alebo hypotéka? Správa a overenie na histórii</h1>
+<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="sprava.html" class="on">Správa a overenie</a><a href="advisor.html" class="">Poradca</a><a href="malaga.html" class="">Málaga (mesačný model)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#prehlad">V skratke</a><a href="#strategie">Stratégie</a><a href="#data">Dáta</a><a href="#model">Model</a><a href="#overenie">Vyhodnotenie</a><a href="#dnes">Dnes</a><a href="#balik">Balík</a></div></nav><main><div class="hero" style="background-image:url(img/ma-pobrezie.jpg)"><span class="tag">Správa k zadaniu</span><h1>Podnájom alebo hypotéka? Správa a overenie na histórii</h1>
 <p>Presné stratégie, dáta od roku 1950, model-poradca a jeho overenie: pre každý počiatočný rok porovnáme radu modelu so skutočným výsledkom.</p></div>
 <section id="prehlad"><div class="sum"><b class="h">V skratke</b>
 Pre Španielsko máme dáta od roku 1950 do 2025. V rokoch 1950–2015 (horizont 10 rokov) vyhrala kúpa v 50 % a prenájom v 50 % začiatočných rokov – o víťazovi rozhodli <b>inflácia a sadzby</b>: v 50.–70. rokoch sa kúpa výrazne oplácala, od 80. rokov prevažne nie.
 Model „odhad z histórie“ mal pravdu v 55 % (10 r.), 55 % (20 r.) a 35 % (30 r.) rokov; základná stratégia „vždy kúpa“ v 50 %, 48 % a 57 %. <b>Je to len mierne lepšie než stále tipovanie jednej odpovede, pri 30 rokoch horšie</b> – výsledok uvádzame bez príkras.</div>
 <div class="tw"><table><tr><th>Časť zadania</th><th>Kde to je</th><th>Stav</th></tr>
 <tr><td>1 · Stratégie</td><td><a href="#strategie">Stratégie</a></td><td>Hotovo – presný návod pre oba scenáre, hypotéka 30 rokov</td></tr>
-<tr><td>2 · Dáta od roku 1950</td><td><a href="#data">Dáta</a></td><td>Španielsko 1950–2025 (JST + predĺženie). Slovensko pred rokom 2005 neexistuje</td></tr>
+<tr><td>2 · Dáta od roku 1950</td><td><a href="#data">Dáta</a></td><td>Španielsko 1950–2025 (JST + predĺženie).</td></tr>
 <tr><td>3 · Model-poradca</td><td><a href="#model">Model</a>, <a href="advisor.html">Poradca</a></td><td>Odhad z histórie + simulácia; neurónová sieť na webe</td></tr>
 <tr><td>4 · Vyhodnotenie</td><td><a href="#overenie">Overenie</a></td><td>Pre každý rok XY odpoveď len z dát do XY vs. skutočný víťaz</td></tr>
 <tr><td>5 · Jeden balík</td><td><a href="#balik">Balík</a></td><td>Notebook, ktorý sa spustí bez inštalácie a bez sťahovania dát</td></tr></table></div></section>
@@ -81,19 +81,19 @@ Model „odhad z histórie“ mal pravdu v 55 % (10 r.), 55 % (20 r.) a 35 % 
 <tr><td>Sadzba hypotéky</td><td>1950–2025</td><td>JST dlhodobá sadzba (od 2021 ECB 10-r. výnos ES) + 1,5 p. b.</td><td>Hypotéky pred 90. rokmi neboli bežné; marža je predpoklad</td></tr>
 <tr><td>Inflácia</td><td>1950–2025</td><td>JST CPI / HICP (ECB)</td><td>–</td></tr>
 <tr><td>Dane a náklady</td><td>celé obdobie</td><td>dnešné pravidlá (AEAT, Junta de Andalucía)</td><td>Spätná aplikácia; nepravdivá pre roky pred 80. rokmi</td></tr></table></div>
-<details><summary>Predpoklady modelu – tabuľka (dane, náklady, sadzby)</summary><div class="tw"><table><tr><th>Predpoklad</th><th>Španielsko / Málaga</th><th>Slovensko / Bratislava</th><th>Zdroj / základ</th></tr>
-<tr><td>LTV</td><td colspan="2">80 %</td><td>Bežná prax bánk (ES); limity NBS 80–90 % (SK)</td></tr>
-<tr><td>Dane a poplatky pri kúpe</td><td>10 %</td><td>0,6 %</td><td>ES: daň z prevodu ITP 7 % + notár, register (Junta de Andalucía). SK: bez dane z prevodu, poplatok katastru + právnik</td></tr>
-<tr><td>Náklady pri predaji</td><td>4 %</td><td>3 % (+19 % daň zo zisku pri predaji do 5 rokov)</td><td>Provízia makléra, obecná plusvalía</td></tr>
-<tr><td>Údržba + daň z nehnuteľnosti</td><td>1,2 % hodnoty ročne</td><td>1,05 % hodnoty ročne</td><td>IBI, poplatky spoločenstva, opravy</td></tr>
-<tr><td>Splatnosť úveru</td><td>30 rokov</td><td>30 rokov</td><td>INE (priemer), maximum NBS</td></tr>
-<tr><td>Hrubý výnos z prenájmu v 1. roku</td><td>5,0 %</td><td>4,5 %</td><td>Ponukové nájmy z portálov (idealista, realitymap) – <b>nie oficiálne dáta</b>; preto robíme test citlivosti</td></tr>
-<tr><td>Rast nájmu</td><td colspan="2">Skutočný index HICP „skutočné nájomné za bývanie“</td><td>ECB / Eurostat</td></tr>
-<tr><td>Sadzba hypotéky</td><td colspan="2">Sadzba nových hypoték v čase kúpy (ECB MIR); buď fixná na celú dobu, alebo Euribor 12M + pôvodná marža</td><td>ECB MIR, Euribor</td></tr>
-<tr><td>Investovanie</td><td colspan="2">MSCI World v EUR + 2 % odhadované čisté dividendy</td><td>Cenový index MSCI, <b>dividendy sú náš odhad</b></td></tr>
-<tr><td>Daň zo ziskov z investícií</td><td>21 % pri speňažení (plochá aproximácia 19–30 %)</td><td>0 % (po 1 roku oslobodené)</td><td>AEAT; zákon o dani z príjmov SR</td></tr>
-<tr><td>Pravidlo férovosti</td><td colspan="3">Obe domácnosti míňajú mesačne rovnako. Kto má bývanie lacnejšie, rozdiel investuje. Nájomník navyše hneď na začiatku investuje vlastné zdroje a poplatky, ktoré by išli do kúpy.</td></tr></table></div></details>
-<p>Podrobne, vrátane Slovenska, Málagy (MIVAU) a Bratislavy (NBS), je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. <b>Slovensko</b> je v rade od roku 2005, preto pre ťažisko tejto správy (dlhá história) používame Španielsko. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
+<details><summary>Predpoklady modelu – tabuľka (dane, náklady, sadzby)</summary><div class="tw"><table><tr><th>Predpoklad</th><th>Hodnota (Španielsko / Málaga)</th><th>Zdroj / základ</th></tr>
+<tr><td>LTV</td><td>80 %</td><td>Bežná prax bánk</td></tr>
+<tr><td>Dane a poplatky pri kúpe</td><td>10 %</td><td>Daň z prevodu ITP 7 % + notár, register (Junta de Andalucía)</td></tr>
+<tr><td>Náklady pri predaji</td><td>4 %</td><td>Provízia makléra, obecná plusvalía</td></tr>
+<tr><td>Údržba + daň z nehnuteľnosti</td><td>1,2 % hodnoty ročne</td><td>IBI, poplatky spoločenstva, opravy</td></tr>
+<tr><td>Splatnosť úveru</td><td>30 rokov</td><td>Zadanie projektu</td></tr>
+<tr><td>Hrubý výnos z prenájmu v 1. roku</td><td>5,0 % (mesačný model); v dlhej histórii skutočný výnos z JST</td><td>Ponukové nájmy z portálov (idealista) – <b>nie oficiálne dáta</b>; preto robíme test citlivosti</td></tr>
+<tr><td>Rast nájmu</td><td>Skutočný index HICP „skutočné nájomné za bývanie“</td><td>ECB / Eurostat</td></tr>
+<tr><td>Sadzba hypotéky</td><td>Sadzba nových hypoték v čase kúpy (ECB MIR), fixná alebo Euribor 12M + marža; v dlhej histórii dlhodobá sadzba + 1,5 p. b.</td><td>ECB MIR, Euribor, JST</td></tr>
+<tr><td>Investovanie</td><td>MSCI World v EUR + 2 % odhadované čisté dividendy (mesačný model); španielske akcie (JST) v dlhej histórii</td><td>Cenový index MSCI, <b>dividendy sú náš odhad</b></td></tr>
+<tr><td>Daň zo ziskov z investícií</td><td>21 % pri speňažení (plochá aproximácia 19–30 %)</td><td>AEAT</td></tr>
+<tr><td>Pravidlo férovosti</td><td colspan="2">Obe domácnosti míňajú na bývanie rovnako. Kto má bývanie lacnejšie, rozdiel investuje. Nájomník navyše hneď na začiatku investuje vlastné zdroje a poplatky, ktoré by išli do kúpy.</td></tr></table></div></details>
+<p>Podrobne je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. Správa sa venuje Španielsku, kde máme dlhý rad od roku 1950. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
 
 <section id="model"><h2>3 · Model <small>čo berie na vstupe a ako dospeje k odpovedi</small></h2>
 <p><b>Model „odhad z histórie“</b> (typ B zo zadania – sústava malých modelov + simulácia) pracuje len s dátami do roku XY:</p>
