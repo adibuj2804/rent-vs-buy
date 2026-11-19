@@ -46,12 +46,12 @@ h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>su
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script></head><body>
-<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="sprava.html" class="">Správa a overenie</a><a href="advisor.html" class="on">Poradca</a><a href="malaga.html" class="">Málaga (doplnok)</a><a href="bratislava.html" class="">Bratislava (doplnok)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#siet">Ako sieť funguje</a><a href="#kod">Kód</a></div></nav><main><div class="hero" style="background-image:url(img/ba-most-snp.jpg)"><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
+<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="sprava.html" class="">Správa a overenie</a><a href="advisor.html" class="on">Poradca</a><a href="malaga.html" class="">Málaga (mesačný model)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#siet">Ako sieť funguje</a><a href="#kod">Kód</a></div></nav><main><div class="hero" style="background-image:url(img/ba-most-snp.jpg)"><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
 <p>Vyplňte tri krátke časti. Neurónová sieť odhadne pravdepodobnosť, že kúpa s hypotékou vás po zvolenom čase nechá bohatším než prenájom s investovaním.</p></div>
 <div class="note"><b>Najprv si prečítajte:</b> je to vzdelávací model, nie finančné poradenstvo. Sieť napodobňuje presný model projektu na simulovaných scenároch; výsledok je taký dobrý, ako sú vaše predpoklady. Predvyplnené hodnoty sú historické priemery 2006–2025 – nie predpoveď.</div>
 <div class="adv"><div>
 <fieldset><legend>1 · Vaša situácia</legend>
-<label>Mesto<select id="city"><option value="0">Málaga (Španielsko)</option><option value="1">Bratislava (Slovensko)</option></select></label>
+<p class="cap">Mesto: Málaga (Španielsko). Predvyplnené hodnoty sú pre Španielsko.</p>
 <label>Čistý mesačný príjem (€)<small>Slúži len na kontrolu splátky; predpokladáme, že príjem stačí na oba spôsoby.</small><input id="inc" type="number" value="3200"></label>
 <label>Cena nehnuteľnosti (€)<input id="price" type="number" value="280000"></label>
 <label>Úspory na akontáciu a poplatky (€)<small>Z nich sa platia aj dane a poplatky pri kúpe.</small><input id="dep" type="number" value="70000"></label>
@@ -528,16 +528,8 @@ function predict(w, x) {
 const D = {"house_growth_ES": 0.0244, "house_growth_ES_national": 0.0195, "house_growth_SK": 0.0571, "house_growth_SK_national": 0.0571, "rent_growth_ES": 0.0147, "rent_growth_SK": 0.0219, "equity_return": 0.086, "mortgage_rate_ES": 0.0262, "mortgage_rate_SK": 0.0341, "last_month": "2025-12"};
 const $ = id => document.getElementById(id);
 const eur = v => Math.round(v).toLocaleString('sk-SK') + ' €';
-$('city').onchange = () => {
-  const sk = $('city').value === '1';
-  $('rate').value = ((sk ? D.mortgage_rate_SK : D.mortgage_rate_ES)*100).toFixed(2);
-  $('hg').value = ((sk ? D.house_growth_SK : D.house_growth_ES)*100).toFixed(1);
-  $('rg').value = ((sk ? D.rent_growth_SK : D.rent_growth_ES)*100).toFixed(1);
-  $('yld').value = sk ? 4.5 : 5.0;
-  $('u35').disabled = sk;
-};
 $('go').onclick = () => {
-  const sk = +$('city').value, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
+  const sk = 0, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
   const warn = [];
   const buyCost = sk ? 0.006 : ($('u35').value === '1' ? 0.065 : 0.10);
   // úspory pokryjú akontáciu A náklady pri kúpe; zvyšok ceny je úver
