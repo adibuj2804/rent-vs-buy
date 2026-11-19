@@ -36,7 +36,7 @@ def annual_sd(series, months=12):
 SD_HOUSE = np.mean([annual_sd(m["hp_es"]), annual_sd(m["hp_ma"].dropna())])
 SD_EQ = annual_sd(m["msci_eur_tr"])
 SD_RATE = 0.012   # smerodajná odchýlka zmien Euriboru za desaťročie, zaokrúhlená
-print(f"historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}")
+print(f"historická ročná volatilita: byty {SD_HOUSE:.3f}, akcie {SD_EQ:.3f}")
 
 
 # ---- 2/3/4. scenáre + označenie ------------------------------------------------------------
@@ -109,7 +109,7 @@ def train(Xtr, ytr, ctr, epochs=120, lr=2e-3, batch=512, hidden=(64, 64)):
                     upd = lr * (mm / (1 - 0.9 ** t)) / (np.sqrt(vv / (1 - 0.999 ** t)) + 1e-8)
                     (W if k == 0 else b)[...] -= upd
         if ep % 10 == 9:
-            print(f"  epoch {ep+1}/{epochs}")
+            print(f"  epocha {ep+1}/{epochs}")
     return params
 
 
@@ -129,10 +129,10 @@ if __name__ == "__main__":
     # ako často sa sieť zhoduje s *presným modelom očakávaných hodnôt*?
     agree = ((p > 0.5) == (adv_e[cut:] > 0)).mean()
     gap_err = np.abs(out[:, 1] * GAP_SCALE - np.clip(adv_e[cut:], -GAP_SCALE, GAP_SCALE))
-    print(f"gap head: median abs error {np.median(gap_err):.3f} of price, 90th pct {np.percentile(gap_err, 90):.3f}")
+    print(f"hlava rozdielu majetku: medián absolútnej chyby {np.median(gap_err):.3f} ceny, 90. percentil {np.percentile(gap_err, 90):.3f}")
     base = max(y_win[cut:].mean(), 1 - y_win[cut:].mean())
-    print(f"hold-out accuracy {acc:.3f} (majority baseline {base:.3f}); Brier {brier:.3f}; "
-          f"agreement with deterministic exact model {agree:.3f}")
+    print(f"presnosť na neviditeľných scenároch {acc:.3f} (väčšinová odpoveď {base:.3f}); Brierovo skóre {brier:.3f}; "
+          f"zhoda s presným modelom {agree:.3f}")
     # tabuľka kalibrácie
     bins = np.linspace(0, 1, 11)
     cal = []
@@ -151,4 +151,4 @@ if __name__ == "__main__":
                     "sd_house": SD_HOUSE, "sd_equity": SD_EQ},
         "calibration": cal,
     }, open(os.path.join(ROOT, "site/model/nn_weights.json"), "w"))
-    print("saved site/model/nn_weights.json")
+    print("uložené site/model/nn_weights.json")

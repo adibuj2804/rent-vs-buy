@@ -66,7 +66,7 @@ h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>su
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 """
 
-NAV = [("index", "Úvod"), ("sprava", "Správa a overenie"), ("advisor", "Poradca"), ("malaga", "Málaga (mesačný model)")]
+NAV = [("index", "Úvod"), ("data", "Dáta"), ("sprava", "Správa a overenie"), ("advisor", "Poradca"), ("malaga", "Málaga (mesačný model)")]
 
 
 def page(slug, title, body, script="", toc=None):
@@ -138,7 +138,7 @@ ZDROJE = """<ul>
 <li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
 <li><b>MSCI World</b> – cenový index v USD, denné údaje od 1972 (Yahoo Finance), prepočet na EUR podľa ECB; dividendy 2 % ročne sú <i>odhad</i></li>
 <li><b>Jordà–Schularick–Taylor Macrohistory Database</b>, vydanie R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019): „The Rate of Return on Everything, 1870–2015“, <i>Quarterly Journal of Economics</i></li>
-<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
+<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT; hodnoty sú zjednodušené predpoklady (pozri tabuľku predpokladov na stránke Dáta a Správa), nie dáta.</li>
 <li>Úplný zoznam sérií so začiatkami a slabinami: <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">data/SOURCES.md</a></li></ul>"""
 
 
@@ -185,7 +185,7 @@ def city_page(city):
         scope = """<div class="sum"><b class="h">Aké dáta sú oficiálne pre Málagu</b>
 <ul><li><b>Ceny:</b> oficiálny rad ministerstva (MIVAU) <i>valor tasado</i> – priemerná hodnota tasovaného bytu v obci Málaga, štvrťročne od 2005-Q1 (%s €/m²) do %s (%s €/m²). Sú to hodnoty z bankových tasácií, nie ceny z kúpnych zmlúv.</li>
 <li><b>Prepad a oživenie:</b> od vrcholu (%s, %s €/m²) po dno (%s, %s €/m²) ceny klesli o <b>%s %%</b>; dnes sú o %s %% nad vrcholom z roku 2007.</li>
-<li><b>Nájmy:</b> oficiálny lokálny rad (SERPAVI) sa automaticky stiahnuť nedá (aplikácia chránená reCAPTCHA). Preto rast nájmov je celoštátny index HICP a <b>počiatočný výnos 5 %% je predpoklad</b>. Kontrola: nájom 8,9 €/m² mesačne (SERPAVI 2023, podľa našej rešerše) voči oficiálnej cene za 2023 dáva výnos <b>%s %%</b>, teda blízko predpokladu.</li>
+<li><b>Nájmy:</b> oficiálny lokálny rad (SERPAVI) sa automaticky stiahnuť nedá (aplikácia chránená reCAPTCHA). Preto rast nájmov je celoštátny index HICP a <b>počiatočný výnos 5 %% je predpoklad</b>. Kontrola: nájom 8,9 €/m² mesačne (SERPAVI 2023) voči oficiálnej cene za 2023 dáva výnos <b>%s %%</b>, teda blízko predpokladu.</li>
 <li><b>Porovnanie s celoštátnym indexom:</b> keby sme použili ceny celého Španielska (BIS), kúpa by vyhrala v %s mesiacov po 5 rokoch a v %s po 10 rokoch – záver sa teda nemení.</li></ul></div>""" % (
             dec(mf["first"][1], 0), mf["last_quarter"][0].replace("-", " "), dec(mf["last_quarter"][1], 0), mf["peak"][0], dec(mf["peak"][1], 0), mf["trough"][0], dec(mf["trough"][1], 0),
             dec(abs(mf["peak_to_trough"]) * 100, 0), dec((mf["last_quarter"][1] / mf["peak"][1] - 1) * 100, 0), dec(mf["implied_yield_2023"] * 100), pct(nat["5"]), pct(nat["10"]))
@@ -250,9 +250,10 @@ def index_page():
 <div class="txt"><h1>Hypotéka, alebo prenájom a investovanie?</h1><p>Dátová analýza pre Španielsko a Málagu: čo sa viac oplatí a za akých podmienok.</p></div></div>
 <section id="start"><h2>Začnite tu <small>stránky odporúčame prejsť v tomto poradí</small></h2>
 <div class="grid">
-<a class="card photo-card" href="sprava.html"><img src="img/ma-malagueta.jpg" alt="Správa"><div><b>1 · Správa a overenie →</b><br><small>Jadro projektu: presné stratégie, dáta od 1950, model-poradca a jeho vyhodnotenie pre každý počiatočný rok. Notebook na stiahnutie.</small></div></a>
-<a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>2 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a>
-<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>3 · Málaga →</b><br><small>Podrobný mesačný model 2005–2025 s oficiálnymi cenami MIVAU.</small></div></a>
+<a class="card photo-card" href="data.html"><img src="img/ma-katedrala.jpg" alt="Dáta"><div><b>1 · Dáta →</b><br><small>Aké rady sme použili, čo v nich je, odkiaľ sú a čo sme museli odhadnúť. Dáta na stiahnutie.</small></div></a>
+<a class="card photo-card" href="sprava.html"><img src="img/ma-malagueta.jpg" alt="Správa"><div><b>2 · Správa a overenie →</b><br><small>Jadro projektu: presné stratégie, model-poradca a jeho vyhodnotenie pre každý počiatočný rok od 1950. Výpočet si spustíte priamo na stránke.</small></div></a>
+<a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>3 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a>
+<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>4 · Málaga →</b><br><small>Podrobný mesačný model 2005–2025 s oficiálnymi cenami MIVAU.</small></div></a>
 </div></section>
 <section id="zistenia"><h2>Hlavné zistenia</h2>
 <div class="tw"><table><tr><th>Mesto</th><th>Kúpa vyhráva po 5 rokoch</th><th>Kúpa vyhráva po 10 rokoch</th><th>Čo za tým stojí</th></tr>
@@ -287,10 +288,109 @@ __GLOS__</section>
 
 
 # ------------------------------------------------------------------ poradca
-def advisor_page():
-    m = nn["metrics"]
-    d = res["defaults"]
-    js_predict = """// Dopredný prechod natrénovanej siete (8 vstupov -> 64 -> 64 -> 2 výstupy)
+CALC_JS = r"""// ---- dáta a pravidlá (rovnaké ako src/model.py: SPAIN) ----
+const A = {}; ANNUAL.forEach(r => A[r[0]] = {cpi: r[1], lt: r[2], g: r[3], ry: r[4], eq: r[5]});
+const YMAX = Math.max(...ANNUAL.map(r => r[0]));
+const SPN = {ltv: 0.8, buy: 0.10, sell: 0.04, upk: 0.012, term: 30, tax: 0.21};
+const full = y => A[y] && [A[y].g, A[y].ry, A[y].eq, A[y].lt].every(v => v !== null);
+const annuity = (r, n) => Math.abs(r) < 1e-12 ? 1 / n : r / (1 - Math.pow(1 + r, -n));
+const geo = xs => Math.exp(xs.reduce((s, x) => s + Math.log(1 + x), 0) / xs.length) - 1;
+
+// ---- jedna simulácia: obe stratégie po každom roku (zhodné so simulate() v model.py) ----
+function sim(g, rg, eq, rate, ry0, H) {
+  const p = SPN; let price = 1, rent = ry0, bal = p.ltv, left = p.term;
+  let renter = (1 - p.ltv) + p.buy, rc = renter, bp = 0, bc = 0; const out = [];
+  for (let t = 0; t < H; t++) {
+    const pay = bal > 1e-12 ? annuity(rate[t], left) * bal : 0;
+    bal = Math.max(bal - (pay - bal * rate[t]), 0); left = Math.max(left - 1, 1);
+    const diff = pay + p.upk * price - rent;               // kto má bývanie drahšie, druhý rozdiel investuje
+    renter *= 1 + eq[t]; bp *= 1 + eq[t];
+    if (diff > 0) { renter += diff; rc += diff; } else { bp -= diff; bc -= diff; }
+    price *= 1 + g[t]; rent *= 1 + rg[t];
+    const rn = renter - p.tax * Math.max(renter - rc, 0), bn = bp - p.tax * Math.max(bp - bc, 0);
+    out.push({buyer: price * (1 - p.sell) - bal + bn, renter: rn});
+  }
+  return out;
+}
+
+// ---- skutočný priebeh: dáta roku y+1 … y+H ----
+function actual(y, H) {
+  const g = [], eq = [], P = [1];
+  for (let k = 1; k <= H; k++) { g.push(A[y + k].g); eq.push(A[y + k].eq); P.push(P[k - 1] * (1 + g[k - 1])); }
+  const rp = P.map((p, k) => A[y + k].ry * p);               // nájom_k = výnos_k × cena_k
+  const rg = g.map((_, k) => rp[k + 1] / rp[k] - 1);
+  const rate = Array(H).fill(Math.max(A[y].lt / 100 + 0.015, 0.01));
+  const out = sim(g, rg, eq, rate, A[y].ry, H);
+  return out.map((o, k) => ({...o, defl: A[y + k + 1].cpi / A[y].cpi}));
+}
+
+// ---- odhady z dát <= y (model „odhad z histórie“; shrink > 0 = návrat k dlhodobému priemeru) ----
+function knownInputs(y, shrink) {
+  const ys = ANNUAL.map(r => r[0]).filter(v => v <= y);
+  const est = list => {
+    const g = [], r = [], e = [];
+    for (let i = 1; i < list.length; i++) {
+      const a = A[list[i - 1]], b = A[list[i]];
+      g.push(b.g); r.push(b.ry / a.ry * (1 + b.g) - 1); e.push(b.eq);
+    }
+    return [geo(g), Math.max(geo(r), 0), geo(e)];
+  };
+  let [g, rg, eq] = est(ys.slice(-21));                    // posledných 20 rokov
+  if (shrink) {
+    const [g2, r2, e2] = est(ys.filter(v => A[v].g !== null && A[v].ry !== null && A[v].eq !== null));   // sadzba sa tu nevyžaduje
+    g = (1 - shrink) * g + shrink * g2; rg = (1 - shrink) * rg + shrink * r2; eq = (1 - shrink) * eq + shrink * e2;
+  }
+  return {house_growth: g, rent_growth: rg, equity_return: eq, gross_yield: A[y].ry, mortgage_rate: Math.max(A[y].lt / 100 + 0.015, 0.01)};
+}
+function estimateAdv(inp, H) {
+  const c = v => Array(H).fill(v);
+  const o = sim(c(inp.house_growth), c(inp.rent_growth), c(inp.equity_return), c(inp.mortgage_rate), inp.gross_yield, H);
+  return o[H - 1].buyer - o[H - 1].renter;
+}
+function netProb(inp, H) {                                 // neurónová sieť; vstupy orezané na tréningové rozsahy
+  const R_ = W.ranges, cl = (k, v) => Math.min(Math.max(v, R_[k][0]), R_[k][1]);
+  const x = [H, SPN.ltv, cl('gross_yield', inp.gross_yield), SPN.buy, cl('house_growth', inp.house_growth),
+             cl('rent_growth', inp.rent_growth), cl('equity_return', inp.equity_return), cl('mortgage_rate', inp.mortgage_rate)];
+  return predict(W, x).pBuyWins;
+}
+const eur = v => Math.round(v).toLocaleString('sk-SK') + ' €';
+const pc = v => (v * 100).toFixed(0) + ' %';
+
+// ---- A: majetok pre zvolený rok ----
+document.getElementById('cgo').onclick = () => {
+  const y = Math.round(+document.getElementById('cy').value), price = +document.getElementById('cp').value;
+  let H = Math.round(+document.getElementById('ch').value);
+  if (!(y >= 1950 && y + 1 <= YMAX) || !full(y)) { document.getElementById('cout').innerHTML = '<div class="note">Počiatočný rok musí byť medzi 1950 a ' + (YMAX - 1) + '.</div>'; return; }
+  const warn = H > YMAX - y ? '<div class="note">Horizont bol skrátený na ' + (YMAX - y) + ' rokov (dáta končia rokom ' + YMAX + ').</div>' : '';
+  H = Math.min(Math.max(H, 1), YMAX - y);
+  const a = actual(y, H)[H - 1], d = a.defl;
+  const inp = knownInputs(y, 0), e1 = estimateAdv(inp, H) > 0, e2 = estimateAdv(knownInputs(y, 0.5), H) > 0, pn = netProb(inp, H);
+  const ans = b => b ? 'hypotéka' : 'podnájom', won = a.buyer > a.renter;
+  document.getElementById('cout').innerHTML = `<div class="tw"><table><tr><th>Majetok po ${H} rokoch</th><th>Scenár A · podnájom</th><th>Scenár B · hypotéka</th><th>Rozdiel (B − A)</th></tr>
+   <tr><td>v eurách roku ${y + H}</td><td>${eur(a.renter * price)}</td><td>${eur(a.buyer * price)}</td><td>${eur((a.buyer - a.renter) * price)}</td></tr>
+   <tr><td>v eurách roku ${y} (bez inflácie)</td><td>${eur(a.renter / d * price)}</td><td>${eur(a.buyer / d * price)}</td><td>${eur((a.buyer - a.renter) / d * price)}</td></tr></table></div>
+   <p class="verdict">Skutočne vyhral: ${ans(won)}</p>
+   <p>Rada modelov, ktoré poznajú len dáta do roku ${y}: <b>odhad z histórie → ${ans(e1)}</b> · <b>s návratom k priemeru → ${ans(e2)}</b> · <b>neurónová sieť → ${ans(pn > 0.5)}</b> (P(hypotéka) = ${pc(pn)}).</p>${warn}`;
+};
+
+// ---- B: vyhodnotenie pre všetky počiatočné roky ----
+document.getElementById('ego').onclick = () => {
+  const rows = [];
+  for (const H of [10, 20, 30]) {
+    let n = 0, buy = 0, e1 = 0, e2 = 0, e3 = 0;
+    for (let y = 1950; y + H <= YMAX; y++) {
+      if (!full(y)) continue;
+      const a = actual(y, H)[H - 1], won = a.buyer > a.renter, inp = knownInputs(y, 0);
+      n++; buy += won; e1 += (estimateAdv(inp, H) > 0) === won; e2 += (estimateAdv(knownInputs(y, 0.5), H) > 0) === won; e3 += (netProb(inp, H) > 0.5) === won;
+    }
+    rows.push(`<tr><td><b>${H} rokov</b></td><td>${n}</td><td>${pc(buy / n)}</td><td>${pc(1 - buy / n)}</td><td><b>${pc(e1 / n)}</b></td><td><b>${pc(e2 / n)}</b></td><td>${pc(e3 / n)}</td></tr>`);
+  }
+  document.getElementById('eout').innerHTML = '<div class="tw"><table><tr><th>Horizont</th><th>Počiatočných rokov</th><th>Vždy hypotéka</th><th>Vždy podnájom</th><th>Odhad z histórie</th><th>S návratom k priemeru</th><th>Neurónová sieť</th></tr>' + rows.join('') + '</table></div>';
+};
+document.getElementById('cgo').click(); document.getElementById('ego').click();"""
+
+
+PREDICT_JS = """// Dopredný prechod natrénovanej siete (8 vstupov -> 64 -> 64 -> 2 výstupy)
 function predict(w, x) {
   let a = x.map((v, i) => (v - w.mu[i]) / w.sd[i]);           // štandardizácia vstupov
   w.layers.forEach((L, k) => {
@@ -302,6 +402,12 @@ function predict(w, x) {
   return { pBuyWins: 1 / (1 + Math.exp(-a[0])),                // sigmoid -> pravdepodobnosť
            gap: a[1] * w.gapScale };                            // rozdiel majetku, podiel ceny
 }"""
+
+
+def advisor_page():
+    m = nn["metrics"]
+    d = res["defaults"]
+    js_predict = PREDICT_JS
     body = """<div class="hero" __BG__><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
 <p>Vyplňte tri krátke časti. Neurónová sieť odhadne pravdepodobnosť, že kúpa s hypotékou vás po zvolenom čase nechá bohatším než prenájom s investovaním.</p></div>
 <div class="note"><b>Najprv si prečítajte:</b> je to vzdelávací model, nie finančné poradenstvo. Sieť napodobňuje presný model projektu na simulovaných scenároch; výsledok je taký dobrý, ako sú vaše predpoklady. Predvyplnené hodnoty sú historické priemery 2006–2025 – nie predpoveď.</div>
@@ -408,7 +514,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <tr><td>2 · Dáta od roku 1950</td><td><a href="#data">Dáta</a></td><td>Španielsko 1950–2025 (JST + predĺženie).</td></tr>
 <tr><td>3 · Model-poradca</td><td><a href="#model">Model</a>, <a href="advisor.html">Poradca</a></td><td>Odhad z histórie + simulácia; neurónová sieť na webe</td></tr>
 <tr><td>4 · Vyhodnotenie</td><td><a href="#overenie">Overenie</a></td><td>Pre každý rok XY odpoveď len z dát do XY vs. skutočný víťaz</td></tr>
-<tr><td>5 · Jeden balík</td><td><a href="#balik">Balík</a></td><td>Notebook, ktorý sa spustí bez inštalácie a bez sťahovania dát</td></tr></table></div></section>
+<tr><td>5 · Jeden balík</td><td><a href="#balik">Balík</a></td><td>Výpočet priamo na webe bez inštalácie: zvolený rok, rada modelu, vyhodnotenie (aj notebook pre Colab)</td></tr></table></div></section>
 
 <section id="strategie"><h2>1 · Stratégie <small>jednoznačný návod, pri ktorom každý dostane rovnakú sumu</small></h2>
 <p>Dvaja ľudia začínajú 1. januára roku XY s rovnakými úsporami a príjmom a bývajú v byte rovnakej hodnoty (cena = 1,0; všetky sumy sú násobkom ceny). Ročné kroky pre rok k = 1 … H:</p>
@@ -461,13 +567,22 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <div class="tw"><table><tr><th>Horizont</th><th>Model: odhad z histórie</th><th>Neurónová sieť</th></tr>__TROWS__</table></div>
 <p class="cap">Výnos z nájmu 1,5 % (celoštátne dáta JST) je oveľa nižší než 5 %, s ktorými pracuje stránka Málaga (ponukové nájmy v Málage). Preto je odpoveď „podnájom“ pre celoštátnu situáciu; pre vlastné vstupy použite <a href="advisor.html">Poradcu</a>. Vzdelávací model, nie finančné poradenstvo.</p></section>
 
-<section id="balik"><h2>6 · Jeden balík <small>spustiteľný bez inštalácie</small></h2>
-<p>Notebook <b>podnajom_alebo_hypoteka.ipynb</b> obsahuje všetko – dáta (vložené do buniek), kód modelu, váhy siete – a nepotrebuje žiadne stiahnutie ani inštaláciu knižníc (Google Colab má numpy a pandas). Vypočíta majetok oboch scenárov pre zvolený počiatočný rok, dá radu modelu pre zadanú situáciu a zopakuje vyhodnotenie z kapitoly 4.</p>
-<p><a class="btn" href="https://colab.research.google.com/github/adibuj2804/rent-vs-buy/blob/main/notebooks/podnajom_alebo_hypoteka.ipynb">Otvoriť v Google Colab →</a> · <a href="podnajom_alebo_hypoteka.ipynb" download>Stiahnuť notebook</a> · <a href="sprava_podnajom_alebo_hypoteka.pdf" download>Stiahnuť správu (PDF)</a></p>
-<details><summary>walkforward.py – vyhodnotenie a modely (kód)</summary><pre>__WFCODE__</pre></details>
-<details><summary>model.py – výpočet oboch stratégií</summary><pre>__MODELCODE__</pre></details></section>"""
+<section id="balik"><h2>6 · Jeden balík <small>všetko beží priamo na tejto stránke, bez inštalácie</small></h2>
+<p>Dáta (ročná tabuľka 1870–2025), kód modelu aj váhy neurónovej siete sú vložené v tejto stránke a výpočty robí prehliadač. Nič sa neinštaluje ani nesťahuje. Nižšie si môžete vypočítať majetok oboch scenárov pre ľubovoľný počiatočný rok, vidieť radu modelu a zopakovať celé vyhodnotenie z kapitoly 4.</p>
+<div class="card"><b>A · Majetok v oboch scenároch pre zvolený počiatočný rok</b>
+<div class="two" style="margin-top:8px"><label>Počiatočný rok (1950–2015)<input id="cy" type="number" min="1950" max="2015" value="1990"></label>
+<label>Horizont (roky, 1–30)<input id="ch" type="number" min="1" max="30" value="10"></label></div>
+<label>Cena bytu (€)<input id="cp" type="number" value="250000"></label>
+<p><button class="go" id="cgo">Vypočítať</button></p><div id="cout"></div></div>
+<div class="card"><b>B · Vyhodnotenie na histórii, prepočítané vo vašom prehliadači</b>
+<p class="cap">Rovnaký postup ako v kapitole 4, ale celý výpočet (skutočný víťaz, odhad z histórie, sieť) sa spustí teraz v JavaScripte. Čísla sa musia zhodovať s tabuľkou vyššie (tá bola vypočítaná v Pythone).</p>
+<p><button class="go" id="ego">Spustiť vyhodnotenie</button></p><div id="eout"></div></div>
+<p class="cap">Voliteľne: ten istý výpočet v Pythone ako notebook pre Google Colab – <a href="https://colab.research.google.com/github/adibuj2804/rent-vs-buy/blob/main/notebooks/podnajom_alebo_hypoteka.ipynb">otvoriť v Colabe</a> · <a href="podnajom_alebo_hypoteka.ipynb" download>stiahnuť</a>.</p>
+<details><summary>Kód výpočtu v prehliadači (JavaScript, beží na tejto stránke)</summary><pre>__JSCODE__</pre></details>
+<details><summary>walkforward.py – vyhodnotenie a modely (Python)</summary><pre>__WFCODE__</pre></details>
+<details><summary>model.py – výpočet oboch stratégií (Python)</summary><pre>__MODELCODE__</pre></details></section>"""
     body = body.replace("__ASSUMP__", ASSUMP).replace("__AGR__", dec(nn["metrics"]["agreement_with_exact"] * 100)).replace("__BG__", bg("ma-pobrezie.jpg")).replace("__ROWS__", rows).replace("__PER__", per).replace("__SENS__", sens_rows).replace("__TROWS__", trows) \
-        .replace("__WFCODE__", code("src/walkforward.py")).replace("__MODELCODE__", code("src/model.py")) \
+        .replace("__JSCODE__", html.escape(PREDICT_JS + "\n\n" + CALC_JS)).replace("__WFCODE__", code("src/walkforward.py")).replace("__MODELCODE__", code("src/model.py")) \
         .replace("__BUY10__", p(wf[10]["always_buy"])).replace("__RENT10__", p(wf[10]["always_rent"])) \
         .replace("__E10__", p(wf[10]["estimate"])).replace("__E20__", p(wf[20]["estimate"])).replace("__E30__", p(wf[30]["estimate"])) \
         .replace("__B10__", p(wf[10]["always_buy"])).replace("__B20__", p(wf[20]["always_buy"])).replace("__B30__", p(wf[30]["always_buy"])) \
@@ -475,7 +590,8 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
         .replace("__YL__", dec(inp["gross_yield"] * 100)).replace("__MR__", dec(inp["mortgage_rate"] * 100)) \
         .replace("__EXS__", str(ex["start"])).replace("__EXH__", str(ex["horizon"])).replace("__EXP__", nbsp(ex["price"])) \
         .replace("__EXB__", nbsp(ex["real"]["hypoteka"])).replace("__EXR__", nbsp(ex["real"]["prenajom"])).replace("__EXW__", ex["winner"])
-    script = """
+    ann = [[int(r.year)] + [None if pd.isna(v) else round(float(v), 6) for v in (r.cpi, r.ltrate, r.housing_capgain, r.housing_rent_yd, r.eq_tr)] for r in annual.itertuples()]
+    script = "const ANNUAL = " + json.dumps(ann) + ";\nconst W = " + json.dumps(nn) + ";\n" + PREDICT_JS + "\n" + CALC_JS + """
 const WF = R.walkforward.rows; let chart;
 function drawWF(H) {
   const rows = WF[H];
@@ -494,6 +610,101 @@ drawWF('10');
     return page("sprava", "Správa a overenie", body, script, [("prehlad", "V skratke"), ("strategie", "Stratégie"), ("data", "Dáta"), ("model", "Model"), ("overenie", "Vyhodnotenie"), ("dnes", "Dnes"), ("balik", "Balík")])
 
 
-for slug, content in [("index", index_page()), ("malaga", city_page("ES")), ("advisor", advisor_page()), ("sprava", sprava_page())]:
+# ------------------------------------------------------------------ dáta
+def data_page():
+    import pandas as pd, shutil
+    P = os.path.join(ROOT, "data/processed")
+    for f in ("monthly_2003_2025.csv", "spain_annual_1870_2025.csv", "malaga_valor_tasado_quarterly.csv", "walkforward_spain.csv"):
+        shutil.copy(os.path.join(P, f), os.path.join(SITE, "data", f))
+    m = pd.read_csv(os.path.join(P, "monthly_2003_2025.csv"), index_col=0)
+    an = pd.read_csv(os.path.join(P, "spain_annual_1870_2025.csv"))
+    mq = pd.read_csv(os.path.join(P, "malaga_valor_tasado_quarterly.csv"))
+    nm = lambda v, d=2: dec(float(v), d)
+
+    def mrow(name, col, what, unit, src, note, d=2):
+        x = m[col].dropna()
+        return "<tr><td><code>%s</code><br><b>%s</b></td><td>%s</td><td>%s</td><td>%s – %s<br><small>%s → %s</small></td><td>%s</td><td>%s</td></tr>" % (
+            col, name, what, unit, x.index[0], x.index[-1], nm(x.iloc[0], d), nm(x.iloc[-1], d), src, note)
+    monthly_rows = "".join([
+        mrow("Euribor 12M", "euribor12m", "Medzibanková sadzba v eurách na 12 mesiacov; základ variabilných hypoték.", "% ročne", "ECB Data Portal, dataset FM", "Priemer mesiaca. Surový rad siaha od 1994."),
+        mrow("Sadzba nových hypoték", "mir_es", "Priemerná úroková sadzba nových úverov domácnostiam na kúpu bývania v Španielsku. Je to sadzba, s ktorou „kupujeme“ v modeli.", "% ročne", "ECB, dataset MIR", "Jediný súvislý oficiálny rad sadzieb hypoték; začína až v roku 2003."),
+        mrow("Inflácia (HICP, všetky položky)", "hicp_es", "Index spotrebiteľských cien Španielska.", "index, 2015 = 100", "ECB / Eurostat, dataset ICP", "Používa sa na predĺženie CPI 2021–2025 a na prepočet na reálne hodnoty."),
+        mrow("Nájomné (HICP, skutočné nájmy)", "hicp_rent_es", "Index nájomného, ktoré skutočne platia nájomníci v Španielsku.", "index, 2015 = 100", "ECB / Eurostat, dataset ICP", "Celoštátny, nie pre Málagu. Určuje rast nájmu v modeli.", 2),
+        mrow("Kurz EUR/USD", "eurusd", "Referenčný kurz ECB (mesačný priemer).", "USD za 1 EUR", "ECB, dataset EXR", "Slúži na prepočet indexu MSCI z dolárov na eurá.", 4),
+        mrow("MSCI World, cenový index (USD)", "msci_usd_price", "Akciový index veľkých firiem z rozvinutých krajín, bez dividend.", "body indexu", "MSCI cez Yahoo Finance (ticker ^990100-USD-STRD)", "Denné hodnoty; berie sa posledná hodnota mesiaca.", 1),
+        mrow("MSCI World v eurách s dividendami", "msci_eur_tr", "Cenový index prepočítaný na eurá a zvýšený o odhadované dividendy (2 % ročne). Do tohto indexu „investujú“ obe domácnosti.", "body indexu v EUR", "vlastný výpočet", "<b>Dividendy sú náš odhad</b>, skutočný index celkovej návratnosti sa zadarmo stiahnuť nepodarilo.", 1),
+        mrow("Ceny bytov, Španielsko (BIS)", "hp_es", "Index cien rezidenčných nehnuteľností v celom Španielsku.", "index, 2010 = 100", "BIS, dataset WS_SPP", "Štvrťročný rad, medzi štvrťrokmi lineárne interpolovaný v logaritmoch.", 1),
+        mrow("Ceny bytov, Málaga (MIVAU)", "hp_ma", "Priemerná hodnota tasovaného bytu v obci Málaga podľa bankových tasácií. <b>Hlavný rad pre Málagu.</b>", "€ za m²", "MIVAU (španielske ministerstvo bývania), Boletín Online, tabuľka 35103500", "Sú to tasovacie hodnoty, nie ceny z kúpnych zmlúv. Štvrťročne od 2005-Q1, medzi štvrťrokmi interpolované.", 0),
+    ])
+    jst_rows = "".join("<tr><td><code>%s</code><br><b>%s</b></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % r for r in [
+        ("housing_capgain", "Rast cien bytov", "Ročná zmena cien bytov v Španielsku (podiel, 0,05 = +5 %).", "JST 1901–2020; od 2021 BIS", "JST: ceny pred 1971 sú dopočítané, rady skákavé", "Z BIS: ročný priemer indexu"),
+        ("housing_rent_yd", "Výnos z nájmu", "Ročný nájom ÷ cena bytu (0,03 = 3 %). Z neho sa počíta nájom v 1. roku aj jeho ďalší vývoj.", "JST 1900–2020; od 2021 vlastný výpočet", "JST: odhad zo štatistík nájmov a cien", "Pokračovanie od posledného bodu JST podľa rastu nájmov (HICP) a cien (BIS)"),
+        ("eq_tr", "Výnos akcií", "Celková ročná návratnosť akcií vrátane dividend (podiel).", "JST 1900–2020 (španielske akcie); od 2021 MSCI World v EUR", "JST", "<b>Zmena indexu v roku 2021</b>: svetové namiesto španielskych akcií"),
+        ("ltrate", "Dlhodobá sadzba", "Výnos 10-ročných štátnych dlhopisov Španielska, % ročne. Sadzba hypotéky = tento výnos + 1,5 p. b.", "JST 1870–2020; od 2021 ECB", "JST", "ECB 10-ročný výnos ES (v rokoch 2015–2020 sa zhoduje s JST)"),
+        ("cpi", "Index spotrebiteľských cien", "Slúži na prepočet na reálne hodnoty (peniaze roku nákupu).", "JST 1870–2020; od 2021 HICP", "JST", "HICP ES, napojené na JST"),
+    ])
+    prev = an[(an.year >= 1950)].copy()
+    prev_rows = "".join("<tr%s><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (
+        ' style="background:var(--warn)"' if r.source == "extension" else "", r.year, nm(r.housing_capgain * 100, 1) + " %", nm(r.housing_rent_yd * 100, 1) + " %", nm(r.eq_tr * 100, 1) + " %",
+        nm(r.ltrate, 2) + " %", nm(r.cpi, 1), "predĺženie" if r.source == "extension" else "JST") for r in prev.itertuples())
+    mq_rows = "".join("<tr><td>%s</td><td>%s</td></tr>" % (r.period, nm(r.total, 0)) for r in mq.iloc[[0, 1, 2, 3, -4, -3, -2, -1]].itertuples())
+    body = """<div class="hero" __BG__><span class="tag">Dáta</span><h1>Aké dáta sme použili a čo v nich je</h1>
+<p>Každý rad s jednotkou, obdobím, zdrojom a slabinami – a to, čo sme museli odhadnúť.</p></div>
+<section id="prehlad"><div class="sum"><b class="h">V skratke</b>
+Používame <b>dve skupiny dát</b>: (1) <b>mesačné rady 2003–2025</b> pre podrobný model Málagy (sadzby, ceny bytov, nájmy, akcie) a (2) <b>ročný rad Španielska 1870–2025</b> pre dlhú históriu od roku 1950. Dôvod: oficiálne ceny pre samotnú Málagu existujú až od roku 2005, takže <b>dlhá história používa celé Španielsko ako zástupcu Málagy</b>. Všetky súbory sú dole na stiahnutie.</div></section>
+
+<section id="mesacne"><h2>1 · Mesačné rady (2003–2025) <small>podrobný model Málagy; súbor monthly_2003_2025.csv, 276 riadkov</small></h2>
+<div class="tw"><table><tr><th>Rad</th><th>Čo obsahuje</th><th>Jednotka</th><th>Obdobie (prvá → posledná hodnota)</th><th>Zdroj</th><th>Poznámka</th></tr>__MROWS__</table></div>
+<div class="chart"><canvas id="d1"></canvas></div><p class="read">Oficiálna cena bytu v Málage (tasovacia hodnota) v €/m². Vrchol 2007, pád o takmer polovicu do 2014, potom oživenie.</p>
+<div class="chart"><canvas id="d2"></canvas></div><p class="read">Sadzby: Euribor 12M a priemerná sadzba nových hypoték v Španielsku.</p>
+<details><summary>Ukážka dát: ceny v Málage po štvrťrokoch (malaga_valor_tasado_quarterly.csv, __NQ__ riadkov)</summary><div class="tw"><table><tr><th>Štvrťrok</th><th>Valor tasado, €/m²</th></tr>__MQROWS__</table></div></details></section>
+
+<section id="rocne"><h2>2 · Ročný rad Španielska (1870–2025) <small>dlhá história od roku 1950; súbor spain_annual_1870_2025.csv</small></h2>
+<p>Základom je databáza <b>Jordà–Schularick–Taylor Macrohistory Database</b> (vydanie R6; akademická databáza ekonómov Jordàa, Schularicka, Taylora a ďalších). Obsahuje ročné ceny bytov, nájmy, výnosy akcií, sadzby a inflácie pre 18 krajín od roku 1870. My berieme Španielsko. Databáza končí rokom 2020, preto sme roky 2021–2025 <b>doplnili z ECB, BIS a MSCI</b> (žlto v tabuľke nižšie).</p>
+<div class="tw"><table><tr><th>Stĺpec</th><th>Čo obsahuje</th><th>Zdroj do 2020 / od 2021</th><th>Slabina v JST</th><th>Ako sme doplnili 2021–2025</th></tr>__JROWS__</table></div>
+<div class="chart"><canvas id="d3"></canvas></div><p class="read">Ročný rast cien bytov, výnos akcií a výnos 10-ročných dlhopisov v Španielsku, 1950–2025. Vidno infláciu 70.–80. rokov (vysoké sadzby) a pokles po roku 2000.</p>
+<div class="chart"><canvas id="d4"></canvas></div><p class="read">Výnos z nájmu (ročný nájom ÷ cena bytu). Od 50. rokov klesol z 3 % na 1,5 %: byty zdraželi oveľa viac než nájmy.</p>
+<details><summary>Celá tabuľka 1950–2025 (kliknite pre rozbalenie)</summary><div class="tw" style="max-height:420px;overflow:auto"><table><tr><th>Rok</th><th>Rast cien bytov</th><th>Výnos z nájmu</th><th>Výnos akcií</th><th>Dlhodobá sadzba</th><th>CPI</th><th>Zdroj</th></tr>__PROWS__</table></div></details></section>
+
+<section id="odhady"><h2>3 · Čo sme museli odhadnúť <small>dáta, ktoré sa nenašli</small></h2>
+<div class="tw"><table><tr><th>Čo</th><th>Prečo chýba</th><th>Ako sme to odhadli</th></tr>
+<tr><td>Ceny bytov v Málage pred rokom 2005</td><td>MIVAU zverejňuje rad od 2005-Q1</td><td>Pre dlhú históriu používame celoštátne španielske ceny z JST a BIS ako zástupcu Málagy.</td></tr>
+<tr><td>Ceny bytov v Španielsku 1950–1970</td><td>Úrovne cien existujú od roku 1971</td><td>JST ich dopočítava z nájmov a nákladov; rad je „skákavý“ (napr. +45 % a potom −23 %). Berte ako orientačné.</td></tr>
+<tr><td>Výnos z nájmu v Málage</td><td>Oficiálny lokálny rad (SERPAVI) nejde stiahnuť (chránený reCAPTCHA)</td><td>Pre mesačný model predpoklad 5 % z portálov; ako kontrola poslúžil údaj SERPAVI 2023 (8,9 €/m²), ktorý dáva výnos 4,7 %. Citlivosť na túto hodnotu je na stránke Málaga.</td></tr>
+<tr><td>Dividendy MSCI World</td><td>Skutočný index celkovej návratnosti sme nezískali</td><td>Cenový index + 2 % ročne (konštanta <code>MSCI_NET_DIVIDEND_YIELD</code> v kóde).</td></tr>
+<tr><td>Sadzba hypotéky 1950–2002</td><td>Rad sadzieb hypoték existuje od 2003</td><td>Dlhodobý výnos štátnych dlhopisov + 1,5 percentuálneho bodu.</td></tr>
+<tr><td>Roky 2021–2025 v ročnom rade</td><td>JST končí rokom 2020</td><td>Ceny z BIS, nájmy z HICP, akcie z MSCI World v EUR, sadzba z ECB (skript <code>extend_spain.py</code>).</td></tr>
+<tr><td>Dane a poplatky</td><td>Nie sú dáta, sú to pravidlá</td><td>Dnešné pravidlá platia pre celé obdobie (kúpa 10 %, predaj 4 %, údržba 1,2 % ročne, daň zo zisku z investícií 21 %): spätne to nie je presné.</td></tr></table></div></section>
+
+<section id="uprava"><h2>4 · Ako sme dáta upravili</h2>
+<ol class="steps"><li><b>Stiahnutie.</b> ECB (cez API SDMX), BIS, Yahoo Finance, Excel MIVAU a CSV databázy JST; uložené v <code>data/raw</code>.</li>
+<li><b>Zarovnanie na mesiace.</b> Všetko sa spojí podľa mesiaca; spoločný koniec je 2025-12 (tam končí HICP).</li>
+<li><b>Štvrťročné rady</b> (BIS, MIVAU) sa na mesiace prevedú tak, že hodnota štvrťroka platí pre posledný mesiac štvrťroka a medzi nimi sa lineárne interpoluje v logaritmoch.</li>
+<li><b>MSCI</b>: posledná denná hodnota mesiaca, prepočet na EUR kurzom ECB a zvýšenie o 2 % ročne za dividendy.</li>
+<li><b>Ročný rad</b>: JST pre Španielsko; roky 2021–2025 doplnené skriptom <code>extend_spain.py</code>.</li>
+<li><b>Reálne hodnoty</b>: výsledky z dlhej histórie sa delia indexom CPI, takže sú v peniazoch roku nákupu.</li></ol></section>
+
+<section id="stiahnutie"><h2>5 · Dáta na stiahnutie</h2>
+<ul><li><a href="data/monthly_2003_2025.csv" download>monthly_2003_2025.csv</a> – mesačná tabuľka (všetky rady vyššie)</li>
+<li><a href="data/spain_annual_1870_2025.csv" download>spain_annual_1870_2025.csv</a> – ročná tabuľka Španielska (stĺpec <code>source</code> = JST / extension)</li>
+<li><a href="data/malaga_valor_tasado_quarterly.csv" download>malaga_valor_tasado_quarterly.csv</a> – štvrťročné ceny v Málage</li>
+<li><a href="data/walkforward_spain.csv" download>walkforward_spain.csv</a> – výsledky vyhodnotenia pre každý rok a horizont</li>
+<li>Zoznam všetkých surových súborov a zdrojov: <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a></li></ul></section>
+<section id="kod"><h2>6 · Kód spracovania dát</h2>__CODE__</section>
+<p><a href="sprava.html">→ Správa a overenie (stratégie, model, vyhodnotenie)</a></p>"""
+    body = body.replace("__BG__", bg("ma-katedrala.jpg")).replace("__MROWS__", monthly_rows).replace("__JROWS__", jst_rows).replace("__PROWS__", prev_rows) \
+        .replace("__MQROWS__", mq_rows).replace("__NQ__", str(len(mq))) \
+        .replace("__CODE__", code_block("build_data.py – surové dáta → čisté mesačné tabuľky", "src/build_data.py") + code_block("load_malaga.py – ceny pre Málagu z Excelu ministerstva (MIVAU)", "src/load_malaga.py") + code_block("extend_spain.py – predĺženie ročného radu na roky 2021–2025", "src/extend_spain.py"))
+    script = """
+const S = R.series, L = R.series_long;
+line('d1', S.months, [{label:'Valor tasado, Málaga (€/m²)', data:S.hp_ma_eur_m2, borderColor:COL.buy}], {ytitle:'€/m²'});
+line('d2', S.months, [{label:'Euribor 12M (%)', data:S.euribor, borderColor:COL.rent}, {label:'Sadzba nových hypoték, Španielsko (%)', data:S.mir_es, borderColor:COL.buy}], {ytitle:'% ročne'});
+line('d3', L.years, [{label:'Rast cien bytov', data:L.housing_capgain.map(v=>v*100), borderColor:COL.buy}, {label:'Výnos akcií', data:L.eq_tr.map(v=>v*100), borderColor:COL.rent}, {label:'Výnos 10-r. dlhopisov', data:L.ltrate, borderColor:COL.mut, borderDash:[5,4]}], {ytitle:'% ročne'});
+line('d4', L.years, [{label:'Výnos z nájmu', data:L.rent_yield.map(v=>v*100), borderColor:COL.buy}], {ytitle:'% ceny bytu ročne'});
+"""
+    return page("data", "Dáta", body, script, [("mesacne", "Mesačné rady"), ("rocne", "Ročný rad"), ("odhady", "Čo sme odhadli"), ("uprava", "Úprava dát"), ("stiahnutie", "Na stiahnutie"), ("kod", "Kód")])
+
+
+for slug, content in [("index", index_page()), ("malaga", city_page("ES")), ("advisor", advisor_page()), ("sprava", sprava_page()), ("data", data_page())]:
     open(os.path.join(SITE, "%s.html" % slug), "w", encoding="utf-8").write(content)
     print("zapísané", slug, len(content) // 1024, "KB")

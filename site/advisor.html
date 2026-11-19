@@ -46,7 +46,7 @@ h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>su
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script></head><body>
-<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="sprava.html" class="">Správa a overenie</a><a href="advisor.html" class="on">Poradca</a><a href="malaga.html" class="">Málaga (mesačný model)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#siet">Ako sieť funguje</a><a href="#kod">Kód</a></div></nav><main><div class="hero" style="background-image:url(img/ma-malagueta.jpg)"><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
+<header class="nav"><div><b>Kúpa alebo prenájom? Dátová analýza</b><a href="index.html" class="">Úvod</a><a href="data.html" class="">Dáta</a><a href="sprava.html" class="">Správa a overenie</a><a href="advisor.html" class="on">Poradca</a><a href="malaga.html" class="">Málaga (mesačný model)</a></div></header><nav class="toc"><div><span>Na tejto stránke:</span><a href="#siet">Ako sieť funguje</a><a href="#kod">Kód</a></div></nav><main><div class="hero" style="background-image:url(img/ma-malagueta.jpg)"><span class="tag">Interaktívny nástroj</span><h1>Poradca: ktorá možnosť sa hodí vám?</h1>
 <p>Vyplňte tri krátke časti. Neurónová sieť odhadne pravdepodobnosť, že kúpa s hypotékou vás po zvolenom čase nechá bohatším než prenájom s investovaním.</p></div>
 <div class="note"><b>Najprv si prečítajte:</b> je to vzdelávací model, nie finančné poradenstvo. Sieť napodobňuje presný model projektu na simulovaných scenároch; výsledok je taký dobrý, ako sú vaše predpoklady. Predvyplnené hodnoty sú historické priemery 2006–2025 – nie predpoveď.</div>
 <div class="adv"><div>
@@ -121,7 +121,7 @@ def annual_sd(series, months=12):
 SD_HOUSE = np.mean([annual_sd(m[&quot;hp_es&quot;]), annual_sd(m[&quot;hp_ma&quot;].dropna())])
 SD_EQ = annual_sd(m[&quot;msci_eur_tr&quot;])
 SD_RATE = 0.012   # smerodajná odchýlka zmien Euriboru za desaťročie, zaokrúhlená
-print(f&quot;historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}&quot;)
+print(f&quot;historická ročná volatilita: byty {SD_HOUSE:.3f}, akcie {SD_EQ:.3f}&quot;)
 
 
 # ---- 2/3/4. scenáre + označenie ------------------------------------------------------------
@@ -194,7 +194,7 @@ def train(Xtr, ytr, ctr, epochs=120, lr=2e-3, batch=512, hidden=(64, 64)):
                     upd = lr * (mm / (1 - 0.9 ** t)) / (np.sqrt(vv / (1 - 0.999 ** t)) + 1e-8)
                     (W if k == 0 else b)[...] -= upd
         if ep % 10 == 9:
-            print(f&quot;  epoch {ep+1}/{epochs}&quot;)
+            print(f&quot;  epocha {ep+1}/{epochs}&quot;)
     return params
 
 
@@ -214,10 +214,10 @@ if __name__ == &quot;__main__&quot;:
     # ako často sa sieť zhoduje s *presným modelom očakávaných hodnôt*?
     agree = ((p &gt; 0.5) == (adv_e[cut:] &gt; 0)).mean()
     gap_err = np.abs(out[:, 1] * GAP_SCALE - np.clip(adv_e[cut:], -GAP_SCALE, GAP_SCALE))
-    print(f&quot;gap head: median abs error {np.median(gap_err):.3f} of price, 90th pct {np.percentile(gap_err, 90):.3f}&quot;)
+    print(f&quot;hlava rozdielu majetku: medián absolútnej chyby {np.median(gap_err):.3f} ceny, 90. percentil {np.percentile(gap_err, 90):.3f}&quot;)
     base = max(y_win[cut:].mean(), 1 - y_win[cut:].mean())
-    print(f&quot;hold-out accuracy {acc:.3f} (majority baseline {base:.3f}); Brier {brier:.3f}; &quot;
-          f&quot;agreement with deterministic exact model {agree:.3f}&quot;)
+    print(f&quot;presnosť na neviditeľných scenároch {acc:.3f} (väčšinová odpoveď {base:.3f}); Brierovo skóre {brier:.3f}; &quot;
+          f&quot;zhoda s presným modelom {agree:.3f}&quot;)
     # tabuľka kalibrácie
     bins = np.linspace(0, 1, 11)
     cal = []
@@ -236,7 +236,7 @@ if __name__ == &quot;__main__&quot;:
                     &quot;sd_house&quot;: SD_HOUSE, &quot;sd_equity&quot;: SD_EQ},
         &quot;calibration&quot;: cal,
     }, open(os.path.join(ROOT, &quot;site/model/nn_weights.json&quot;), &quot;w&quot;))
-    print(&quot;saved site/model/nn_weights.json&quot;)
+    print(&quot;uložené site/model/nn_weights.json&quot;)
 </pre></details><details><summary>model.py – presný výpočet, ktorý označuje scenáre</summary><pre>&quot;&quot;&quot;Kúpa s hypotékou vs. prenájom a investovanie: jeden výpočtový model pre obe úrovne.
 
 Pravidlo férovosti: obe domácnosti míňajú v každom období rovnako. Kto má v danom období

@@ -15,9 +15,9 @@
 ## Známe slabiny
 - Celková návratnosť MSCI je **odhad**: cenový index + 2 % ročne čisté dividendy (konštanta MSCI_NET_DIVIDEND_YIELD v src/build_data.py). Skutočný index čistej návratnosti sa z voľného zdroja stiahnuť nepodarilo.
 - Ceny pre **Málagu** sú oficiálne MIVAU valor tasado (hodnoty z tasácií, nie z kúpnych zmlúv; load_malaga.py). Celoštátny index BIS slúži na porovnanie a na dlhú históriu.
-- **Nájmy**: lokálny oficiálny rad SERPAVI sa nedá stiahnuť automaticky (aplikácia s reCAPTCHA); používa sa celoštátny HICP rast nájmov a počiatočný výnos ako predpoklad. Kontrola: SERPAVI 8,9 €/m² (2023, údaj z rešerše) / valor tasado 2023 ≈ 4,7 % hrubého výnosu.
+- **Nájmy**: lokálny oficiálny rad SERPAVI sa nedá stiahnuť automaticky (aplikácia s reCAPTCHA); používa sa celoštátny HICP rast nájmov a počiatočný výnos ako predpoklad. Kontrola: SERPAVI 8,9 €/m² (2023) / valor tasado 2023 ≈ 4,7 % hrubého výnosu.
 - Španielske údaje JST o bývaní z rokov 1950–1970 sú dopočítané a „skákavé“; úrovne cien existujú od 1971.
-- Výnosy z nájmu (5,0 % pre Málagu) sú predpoklady z portálov podľa úvodnej rešerše (Claude.pdf).
+- Výnosy z nájmu (5,0 % pre Málagu) sú predpoklady z portálov z portálov (ponukové nájmy).
 
 
 ## Predĺženie španielskeho ročného radu 2021–2025 (`data/processed/spain_annual_1870_2025.csv`)
