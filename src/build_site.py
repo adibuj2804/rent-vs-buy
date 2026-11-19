@@ -138,7 +138,7 @@ ZDROJE = """<ul>
 <li><b>BIS</b> – ceny rezidenčných nehnuteľností (nominálny index; Španielsko od 1971) – <a href="https://data.bis.org/topics/RPP">data.bis.org</a></li>
 <li><b>MSCI World</b> – cenový index v USD, denné údaje od 1972 (Yahoo Finance), prepočet na EUR podľa ECB; dividendy 2 % ročne sú <i>odhad</i></li>
 <li><b>Jordà–Schularick–Taylor Macrohistory Database</b>, vydanie R6 (1870–2020) – <a href="https://www.macrohistory.net/database/">macrohistory.net</a>. Jordà, Knoll, Kuvshinov, Schularick, Taylor (2019): „The Rate of Return on Everything, 1870–2015“, <i>Quarterly Journal of Economics</i></li>
-<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT, katastrálny portál SR – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
+<li><b>Dane a náklady</b>: Junta de Andalucía (ITP), AEAT – z úvodnej rešerše (<code>Claude.pdf</code>); údaje prevzaté z médií je vhodné overiť na primárnych portáloch.</li>
 <li>Úplný zoznam sérií so začiatkami a slabinami: <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">data/SOURCES.md</a></li></ul>"""
 
 
@@ -306,7 +306,7 @@ __GLOS__</section>
 <li>Dnešné dane sú aplikované spätne; španielske údaje o bývaní pred rokom 1971 sú dopočítané.</li>
 <li>Nejde o finančné poradenstvo.</li></ul></section>
 <section id="zdroje"><h2>Zdroje</h2>__ZDROJE__</section>"""
-    body = body.replace("__B1__", bg("ma-malagueta.jpg")).replace("__B2__", bg("ba-hrad.jpg")) \
+    body = body.replace("__B1__", bg("ma-malagueta.jpg")).replace("__B2__", bg("ma-katedrala.jpg")) \
         .replace("__E5__", pct(e["5"])).replace("__E10__", pct(e["10"])) \
         .replace("__GLOS__", GLOSAR).replace("__ZDROJE__", ZDROJE) \
         .replace("__ACC__", dec(m["holdout_accuracy"] * 100)).replace("__BASE__", dec(m["majority_baseline"] * 100)).replace("__AGR__", dec(m["agreement_with_exact"] * 100))
@@ -357,7 +357,7 @@ function predict(w, x) {
 <details open><summary>Predikcia v prehliadači (beží na tejto stránke)</summary><pre>__JS__</pre></details>
 __C1____C2__</section>
 <section><h2>Obmedzenia poradcu</h2><ul><li>Ignoruje vašu osobnú daňovú situáciu nad rámec pravidiel mesta, riziko straty práce a iné využitie peňazí.</li><li>Vstupy mimo tréningových rozsahov (LTV pod 50 % alebo nad 90 %, horizont nad 30 rokov) sa orežú a zobrazí sa upozornenie.</li><li>Sieť napodobňuje presný model; jej overenie proti skutočným výsledkom pre každý rok od 1950 je v <a href="sprava.html#overenie">Správe</a> – a nie je lepšie než tipovanie.</li></ul></section>"""
-    body = body.replace("__BG__", bg("ba-most-snp.jpg")).replace("__RATE__", "%.2f" % (d["mortgage_rate_ES"] * 100)) \
+    body = body.replace("__BG__", bg("ma-malagueta.jpg")).replace("__RATE__", "%.2f" % (d["mortgage_rate_ES"] * 100)) \
         .replace("__HG__", "%.1f" % (d["house_growth_ES"] * 100)).replace("__RG__", "%.1f" % (d["rent_growth_ES"] * 100)).replace("__EQ__", "%.1f" % (d["equity_return"] * 100)) \
         .replace("__NTR__", "{:,}".format(m["n_train"]).replace(",", NB)).replace("__NTE__", "{:,}".format(m["n_test"]).replace(",", NB)) \
         .replace("__ACC__", dec(m["holdout_accuracy"] * 100)).replace("__BASE__", dec(m["majority_baseline"] * 100)).replace("__BRIER__", dec(m["brier"], 3)) \
