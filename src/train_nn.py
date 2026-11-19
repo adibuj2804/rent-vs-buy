@@ -18,7 +18,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 rng = np.random.default_rng(42)
 
 GAP_SCALE = 3.0   # cieľ „rozdiel majetku“ sa orezáva na ±3× ceny a delí touto hodnotou
-FEATURES = ["city_SK", "years", "ltv", "gross_yield", "buy_cost", "house_growth",
+FEATURES = ["years", "ltv", "gross_yield", "buy_cost", "house_growth",
             "rent_growth", "equity_return", "mortgage_rate"]
 
 
@@ -33,7 +33,7 @@ m = pd.read_csv(os.path.join(ROOT, "data/processed/monthly_2003_2025.csv"), inde
 def annual_sd(series, months=12):
     r = (series.shift(-months) / series - 1).dropna()
     return float(r.std())
-SD_HOUSE = np.mean([annual_sd(m["hp_es"]), annual_sd(m["hp_sk"])])
+SD_HOUSE = np.mean([annual_sd(m["hp_es"]), annual_sd(m["hp_ma"].dropna())])
 SD_EQ = annual_sd(m["msci_eur_tr"])
 SD_RATE = 0.012   # smerodajná odchýlka zmien Euriboru za desaťročie, zaokrúhlená
 print(f"historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}")
@@ -41,16 +41,15 @@ print(f"historical annual sd  house={SD_HOUSE:.3f}  equity={SD_EQ:.3f}")
 
 # ---- 2/3/4. scenáre + označenie ------------------------------------------------------------
 def make(n):
-    city = rng.integers(0, 2, n)                     # 0 = Španielsko/Málaga, 1 = Slovensko/Bratislava
     years = rng.integers(2, 31, n)
     ltv = rng.uniform(0.5, 0.9, n)
     yld = rng.uniform(RANGES["gross_yield"][0], RANGES["gross_yield"][1], n)
-    buy_cost = np.where(city == 0, rng.uniform(0.055, 0.13, n), rng.uniform(0.003, 0.02, n))
+    buy_cost = rng.uniform(0.055, 0.13, n)
     house_g = rng.uniform(*RANGES["house_growth"], n)
     rent_g = np.clip(house_g * rng.uniform(0.3, 1.0, n) + rng.uniform(0, 0.02, n), *RANGES["rent_growth"])
     eq = rng.uniform(*RANGES["equity_return"], n)
     rate = rng.uniform(*RANGES["mortgage_rate"], n)
-    X = np.c_[city, years, ltv, yld, buy_cost, house_g, rent_g, eq, rate]
+    X = np.c_[years, ltv, yld, buy_cost, house_g, rent_g, eq, rate]
 
     # realizovaný výsledok = očakávanie + šum, ktorý s horizontom klesá (sd/sqrt(roky))
     z1, z2 = rng.standard_normal(n), rng.standard_normal(n)
@@ -59,17 +58,13 @@ def make(n):
     e_real = eq + SD_EQ / np.sqrt(years) * (corr * z1 + np.sqrt(1 - corr ** 2) * z2)
     r_real = np.clip(rent_g + 0.5 * (g_real - house_g), 0, None)
 
-    sk = city == 1
-    pick = lambda a, b: np.where(sk, b, a)
-    P, S = M.SPAIN, M.SLOVAKIA
+    P = M.SPAIN
     args = dict(
         ltv=ltv, buy_cost=buy_cost,
-        sell_cost=pick(P.sell_cost, S.sell_cost), upkeep=pick(P.upkeep, S.upkeep),
-        gross_yield=yld, term_years=pick(P.term_years, S.term_years).astype(float),
-        invest_tax=pick(P.invest_tax, S.invest_tax),
-        inv_free_after=pick(0, 12).astype(float),
-        home_tax=pick(P.home_gain_tax, S.home_gain_tax),
-        home_free_after=pick(0, 60).astype(float),
+        sell_cost=np.full(n, P.sell_cost), upkeep=np.full(n, P.upkeep),
+        gross_yield=yld, term_years=np.full(n, float(P.term_years)),
+        invest_tax=np.full(n, P.invest_tax), inv_free_after=np.zeros(n),
+        home_tax=np.full(n, P.home_gain_tax), home_free_after=np.zeros(n),
     )
     adv_noisy = M.simulate_batch(g_real, r_real, e_real, rate, years=years, **args)
     adv_exact = M.simulate_batch(house_g, rent_g, eq, rate, years=years, **args)

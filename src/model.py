@@ -29,19 +29,10 @@ class Params:
     invest_tax: float = 0.21     # daň zo zisku portfólia pri speňažení
     invest_tax_free_after: int = 0  # po koľkých obdobiach je zisk z portfólia bez dane (0 = nikdy)
     home_gain_tax: float = 0.0   # daň zo zisku z predaja bytu (v Španielsku sa predpokladá úľava na hlavné bývanie)
-    home_gain_tax_free_after: int = 0  # po koľkých obdobiach je zisk z bytu oslobodený od dane (SK: 5 rokov)
+    home_gain_tax_free_after: int = 0  # po koľkých obdobiach je zisk z bytu oslobodený od dane (0 = nikdy)
 
 
 SPAIN = Params()
-SLOVAKIA = Params(
-    buy_cost=0.006,          # poplatok katastru + právnik; bez dane z prevodu od 2005
-    sell_cost=0.03,          # provízia makléra
-    upkeep=0.0105,           # údržba ≈ 1 % + veľmi nízka daň z nehnuteľnosti
-    gross_yield=0.045,
-    term_years=30,
-    invest_tax=0.0,          # zisky z ETF bez dane po viac ako 1 roku ...
-    home_gain_tax=0.19,      # ... zisk z bytu zdanený 19 % pri predaji do 5 rokov
-)
 
 
 def annuity(rate_per_period: float, n: int) -> float:
@@ -108,26 +99,14 @@ def simulate(price_g, rent_g, eq_r, mort_rate_path, p: Params, ppy: int, horizon
     return (buyer_arr, renter_arr, adv) if parts else adv
 
 
-def slovakia_flags(p: Params, ppy: int) -> Params:
-    """SK: zisky z ETF bez dane po 1 roku; zisk z bytu bez dane po 5 rokoch."""
-    return replace(p, invest_tax_free_after=ppy, home_gain_tax_free_after=5 * ppy)
-
-
 # ---------------------------------------------------------------- úroveň 1 (mesačne)
-def tier1_grid(monthly: pd.DataFrame, city: str, rate_type: str, p: Params | None = None,
-               max_years: int = 20, start_from: str | None = None, es_prices: str = "hp_ma",
-               sk_prices: str = "hp_ba"):
-    """Spätný test pre každý mesiac nákupu. Riadky = mesiac nákupu, stĺpce = horizont v rokoch."""
-    if city == "ES":
-        # es_prices: "hp_ma" = MIVAU valor tasado pre obec Málaga (od 2005-03), "hp_es" = celoštátny index BIS
-        hp, hicp_rent, mir = monthly[es_prices], monthly["hicp_rent_es"], monthly["mir_es"]
-        p = p or SPAIN
-        start_from = start_from or ("2005-03" if es_prices == "hp_ma" else "2005-01")
-    else:
-        # sk_prices: "hp_ba" = NBS ponukové ceny, Bratislavský kraj; "hp_sk" = celoštátny index BIS
-        hp, hicp_rent, mir = monthly[sk_prices], monthly["hicp_rent_sk"], monthly["mir_sk"]
-        p = slovakia_flags(p or SLOVAKIA, 12)
-        start_from = start_from or "2008-01"
+def tier1_grid(monthly: pd.DataFrame, rate_type: str, p: Params | None = None,
+               max_years: int = 20, start_from: str = "2005-03", prices: str = "hp_ma"):
+    """Spätný test pre každý mesiac nákupu. Riadky = mesiac nákupu, stĺpce = horizont v rokoch.
+
+    prices: "hp_ma" = MIVAU valor tasado pre obec Málaga (od 2005-03), "hp_es" = celoštátny index BIS."""
+    hp, hicp_rent, mir = monthly[prices], monthly["hicp_rent_es"], monthly["mir_es"]
+    p = p or SPAIN
     eq = monthly["msci_eur_tr"]
     ph = hp.pct_change().shift(-1)           # rast z t na t+1
     rg = hicp_rent.pct_change().shift(-1)

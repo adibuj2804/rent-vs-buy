@@ -26,11 +26,8 @@ def monthly():
         {
             "euribor12m": ecb("euribor12m.csv"),
             "mir_es": ecb("mir_es.csv"),
-            "mir_sk": ecb("mir_sk.csv"),
             "hicp_es": ecb("hicp_es.csv"),
-            "hicp_sk": ecb("hicp_sk.csv"),
             "hicp_rent_es": ecb("hicp_rent_es.csv"),
-            "hicp_rent_sk": ecb("hicp_rent_sk.csv"),
             "eurusd": ecb("eurusd.csv"),
         }
     )
@@ -49,7 +46,7 @@ def monthly():
     m["msci_eur_tr"] = eur * (1 + MSCI_NET_DIVIDEND_YIELD) ** (np.arange(len(m)) / 12)
     # štvrťročný index cien bytov BIS -> mesačný (lineárna interpolácia v logaritmoch)
     bis = pd.read_csv(os.path.join(RAW, "bis_spp.csv"))
-    for iso, col in [("ES", "hp_es"), ("SK", "hp_sk")]:
+    for iso, col in [("ES", "hp_es")]:
         s = bis[bis.REF_AREA == iso].set_index("TIME_PERIOD")["OBS_VALUE"].astype(float)
         s.index = pd.PeriodIndex(s.index, freq="Q").asfreq("M", "end")
         s = np.log(s).reindex(pd.period_range(s.index.min(), s.index.max(), freq="M")).interpolate()
@@ -60,11 +57,6 @@ def monthly():
     ma.index = pd.PeriodIndex(ma.index, freq="Q").asfreq("M", "end")
     ma = np.log(ma).reindex(pd.period_range(ma.index.min(), ma.index.max(), freq="M")).interpolate()
     m["hp_ma"] = np.exp(ma)
-    # NBS ponukové ceny bytov a domov, Bratislavský kraj (štvrťročne od 2005-Q1) -> mesačne (rovnako ako vyššie)
-    ba = pd.read_csv(os.path.join(OUT, "bratislava_nbs_quarterly.csv")).set_index("period")["ba"]
-    ba.index = pd.PeriodIndex(ba.index, freq="Q").asfreq("M", "end")
-    ba = np.log(ba).reindex(pd.period_range(ba.index.min(), ba.index.max(), freq="M")).interpolate()
-    m["hp_ba"] = np.exp(ba)
     m.index.name = "month"
     m.to_csv(os.path.join(OUT, "monthly_2003_2025.csv"))
     return m

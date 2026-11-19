@@ -81,7 +81,7 @@ def advise_net(net: dict, inp: dict, years: int, p=None):
     for k, (lo, hi) in net.get("ranges", RANGES).items():
         v[k] = min(max(inp[k], lo), hi)
         clipped += v[k] != inp[k]
-    x = np.array([0, years, p.ltv, v["gross_yield"], p.buy_cost, v["house_growth"], v["rent_growth"],
+    x = np.array([years, p.ltv, v["gross_yield"], p.buy_cost, v["house_growth"], v["rent_growth"],
                   v["equity_return"], v["mortgage_rate"]], float)
     a = (x - net["mu"]) / net["sd"]
     for i, L in enumerate(net["layers"]):

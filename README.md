@@ -1,4 +1,4 @@
-# Kúpa alebo prenájom: Málaga a Bratislava
+# Kúpa alebo prenájom: Málaga (Španielsko)
 
 Statický web + kód v Pythone, ktorý porovnáva „kúpu s hypotékou“ a „prenájom a investovanie rozdielu“.
 
@@ -7,7 +7,6 @@ Statický web + kód v Pythone, ktorý porovnáva „kúpu s hypotékou“ a „
 * `site/` – otvorte `site/index.html` (funguje aj zo súboru; na zdieľanie sa publikuje priečinok `site/`, napr. cez GitHub Pages)
 * `src/build_data.py` – surové dáta → čisté tabuľky (`data/processed`)
 * `src/load_malaga.py` – oficiálny rad cien MIVAU pre Málagu z Excelu ministerstva
-* `src/load_bratislava.py` – rad NBS pre Bratislavský kraj
 * `src/model.py` – výpočet kúpa vs. prenájom (mesačne pre úroveň 1, ročne pre úroveň 2)
 * `src/export_results.py` – spätné testy a citlivosť → `site/data/results.json`
 * `src/extend_spain.py` – predĺženie španielskeho ročného radu JST (končí 2020) do 2025 z ECB/BIS

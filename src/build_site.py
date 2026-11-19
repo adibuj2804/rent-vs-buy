@@ -165,10 +165,10 @@ def sens_table(city):
 
 # ------------------------------------------------------------------ stránky mesta
 def city_page(city):
-    ES = city == "ES"
-    name = "Málaga" if ES else "Bratislava"
-    slug = "malaga" if ES else "bratislava"
-    hp, rent = ("hp_ma", "rent_es") if ES else ("hp_ba", "rent_sk")
+    ES = True
+    name = "Málaga"
+    slug = "malaga"
+    hp, rent = "hp_ma", "rent_es"
     E = res[city]["fixed"]
     s = res[city]["sensitivity"]
     w5, w10 = E["winshare"]["5"], E["winshare"]["10"]
@@ -190,27 +190,6 @@ def city_page(city):
             dec(mf["first"][1], 0), mf["last_quarter"][0].replace("-", " "), dec(mf["last_quarter"][1], 0), mf["peak"][0], dec(mf["peak"][1], 0), mf["trough"][0], dec(mf["trough"][1], 0),
             dec(abs(mf["peak_to_trough"]) * 100, 0), dec((mf["last_quarter"][1] / mf["peak"][1] - 1) * 100, 0), dec(mf["implied_yield_2023"] * 100), pct(nat["5"]), pct(nat["10"]))
         tier_note = "2005"
-    else:
-        zhrnutie = ("Bratislava má takmer nulové náklady pri kúpe a zisky z ETF po roku oslobodené od dane. Kúpa vyhrala v <b>%s</b> testovaných mesiacov pri 5-ročnom a v <b>%s</b> pri 10-ročnom horizonte – teda približne <b>vyrovnané</b>. "
-                    "Rozhoduje najmä nájom: pri výnose %s %% vyhráva kúpa len v %s, pri %s %% až v %s. "
-                    "Rýchly rast cien (od 2006 ≈ %s %% ročne) pomáhal kupujúcim, no mnohí z nich kupovali pri vysokých sadzbách po roku 2008.") % (
-            pct(w5), pct(w10), dec(s["yield"][0][0] * 100), pct(s["yield"][0][1]), dec(s["yield"][3][0] * 100), pct(s["yield"][3][1]),
-            dec(res["defaults"]["house_growth_SK"] * 100))
-        hero_img, lead = "ba-hrad.jpg", "Kontrastný prípad: bez dane z prevodu a so ziskami z ETF oslobodenými od dane po roku."
-        photos = fig("ba-hrad.jpg", "Bratislavský hrad") + fig("ba-michalska.jpg", "Michalská brána") + fig("ba-most-snp.jpg", "Most SNP a Dunaj")
-        bf = res["bratislava_facts"]
-        natsk = res["SK_national"]["fixed"]["winshare"]
-        scope = """<div class="sum"><b class="h">Aké dáta sú oficiálne pre Bratislavu</b>
-<ul><li><b>Ceny:</b> rad Národnej banky Slovenska (NBS) – priemerné ceny nehnuteľností na bývanie v <b>Bratislavskom kraji</b>, štvrťročne od 2005-Q1 (%s €/m²) do %s (%s €/m²). Sú to <b>ponukové ceny</b> z inzercie (nie ceny z kúpnych zmlúv), za byty aj domy, a za celý kraj, nie len mesto.</li>
-<li><b>Dva cykly:</b> po vrchole %s (%s €/m²) ceny do %s klesli na %s €/m² (−%s %%). Šok zo sadzieb ich po vrchole %s (%s €/m²) znížil o %s %% (dno %s).</li>
-<li><b>Nájmy:</b> oficiálny rad nájmov pre Bratislavu neexistuje. Rast nájmov je celoštátny index HICP. Ponukové nájmy z rešerše (vrátane energií) voči ponukovým cenám NBS dávajú hrubý výnos <b>%s – %s %%</b>, čo je viac než náš predpoklad %s %% – predpoklad je teda skôr opatrný a v teste citlivosti nižšie vidno, ako by sa výsledok zmenil.</li>
-<li><b>Porovnanie s celoštátnym indexom:</b> s cenami celého Slovenska (BIS) by kúpa vyhrala v %s mesiacov po 5 rokoch a v %s po 10 rokoch.</li>
-<li><b>Model od roku 1950 pre Slovensko nie je možný</b> – krajina nie je v dlhodobých databázach a pred rokom 1990 tu nebol trh s bývaním.</li></ul></div>""" % (
-            dec(bf["first"][1], 0), bf["last_quarter"][0].replace("-", " "), dec(bf["last_quarter"][1], 0),
-            bf["peak1"][0], dec(bf["peak1"][1], 0), bf["trough1"][0], dec(bf["trough1"][1], 0), dec(abs(bf["trough1"][1] / bf["peak1"][1] - 1) * 100, 0),
-            bf["peak2"][0], dec(bf["peak2"][1], 0), dec(abs(bf["peak2_to_trough2"]) * 100, 0), bf["trough2"][0],
-            dec(bf["yield_realitymap"] * 100), dec(bf["yield_bencont"] * 100), "4,5", pct(natsk["5"]), pct(natsk["10"]))
-        tier_note = "2008"
 
     tier2 = ""
     toc = [("zhrnutie", "V skratke"), ("trh", "Čo sa dialo na trhu"), ("horizont", "Kedy sa kúpa oplatí"), ("citlivost", "Citlivosť")]
@@ -235,21 +214,15 @@ def city_page(city):
 <section id="citlivost"><h2>Citlivosť <small>čo sa stane, keď zmeníme najneistejšie vstupy</small></h2>__SENS__</section>
 __TIER2__
 <p><a href="sprava.html">→ Správa a overenie (jadro projektu)</a> · <a href="advisor.html">Poradca</a> · <a href="index.html#zdroje">Zdroje dát</a></p>"""
-    body = body.replace("__BG__", bg(hero_img)).replace("__TAG__", "Hlavný prípad" if ES else "Kontrastný prípad").replace("__NAME__", name) \
+    body = body.replace("__BG__", bg(hero_img)).replace("__TAG__", "Hlavný prípad").replace("__NAME__", name) \
         .replace("__LEAD__", lead).replace("__PHOTOS__", photos).replace("__ZHR__", zhrnutie).replace("__SCOPE__", scope) \
         .replace("__T__", tier_note).replace("__CARDS__", key_cards(city)).replace("__SENS__", sens_table(city)) \
         .replace("__TIER2__", tier2).replace("__ASSUMP__", ASSUMP) \
-        .replace("__EURCHART__", '<div class="chart"><canvas id="c4"></canvas></div><p class="read">' + ("Priemerná tasovaná hodnota bytu v obci Málaga v eurách na m² (oficiálny rad MIVAU)." if ES else "Priemerná ponuková cena nehnuteľností na bývanie v Bratislavskom kraji v eurách na m² (rad NBS).") + '</p>') \
-        .replace("__CODE__", code_block("model.py – výpočet kúpa vs. prenájom", "src/model.py") + code_block("build_data.py – surové dáta → čisté tabuľky", "src/build_data.py") + (code_block("load_malaga.py – oficiálny rad cien pre Málagu z Excelu ministerstva", "src/load_malaga.py") if ES else code_block("load_bratislava.py – rad NBS pre Bratislavský kraj", "src/load_bratislava.py")))
+        .replace("__EURCHART__", '<div class="chart"><canvas id="c4"></canvas></div><p class="read">' + "Priemerná tasovaná hodnota bytu v obci Málaga v eurách na m² (oficiálny rad MIVAU)." + '</p>') \
+        .replace("__CODE__", code_block("model.py – výpočet kúpa vs. prenájom", "src/model.py") + code_block("build_data.py – surové dáta → čisté tabuľky", "src/build_data.py") + code_block("load_malaga.py – oficiálny rad cien pre Málagu z Excelu ministerstva", "src/load_malaga.py"))
 
     eurjs = """
-line('c4', S.months, [{label:'__EURLABEL__', data:S.__EURKEY__, borderColor:COL.buy}], {ytitle:'€/m²'});""".replace("__EURLABEL__", "Valor tasado, Málaga (€/m²)" if ES else "Ponukové ceny, Bratislavský kraj (€/m²)").replace("__EURKEY__", "hp_ma_eur_m2" if ES else "hp_ba_eur_m2")
-    t2js = """
-const T = R.tier2.by_start;
-line('t2', T['10'].map(x=>x[0]), [
- {label:'Horizont 10 rokov', data:T['10'].map(x=>x[1]), borderColor:COL.buy},
- {label:'Horizont 20 rokov', data:T['10'].map(x=>{const f=T['20'].find(y=>y[0]===x[0]);return f?f[1]:null}), borderColor:COL.rent}],
- {ytitle:'Výhoda kúpy (reálne, podiel ceny)', title:'Španielsko: výhoda kúpy podľa roka nákupu'});""" if ES else ""
+line('c4', S.months, [{label:'__EURLABEL__', data:S.__EURKEY__, borderColor:COL.buy}], {ytitle:'€/m²'});""".replace("__EURLABEL__", "Valor tasado, Málaga (€/m²)").replace("__EURKEY__", "hp_ma_eur_m2")
     script = """
 const S = R.series; const E = R.__C__;
 line('c1', S.months, [
@@ -265,7 +238,7 @@ const b10 = E.fixed.by_start['10'], v10 = E.variable.by_start['10'];
 line('c3', b10.map(x=>x[0]), [
  {label:'Fixná', data:b10.map(x=>x[1]), borderColor:COL.buy},
  {label:'Variabilná', data:v10.map(x=>x[1]), borderColor:COL.rent}], {ytitle:'Kupujúci − nájomník, podiel ceny'});
-""".replace("__C__", city).replace("__HP__", hp).replace("__RENT__", rent).replace("__HPLABEL__", "Ceny bytov v Málage (MIVAU)" if ES else "Ponukové ceny, Bratislavský kraj (NBS)") + t2js + eurjs
+""".replace("__C__", city).replace("__HP__", hp).replace("__RENT__", rent).replace("__HPLABEL__", "Ceny bytov v Málage (MIVAU)") + eurjs
     return page(slug, name, body, script, toc)
 
 
@@ -317,7 +290,7 @@ __GLOS__</section>
 def advisor_page():
     m = nn["metrics"]
     d = res["defaults"]
-    js_predict = """// Dopredný prechod natrénovanej siete (9 vstupov -> 64 -> 64 -> 2 výstupy)
+    js_predict = """// Dopredný prechod natrénovanej siete (8 vstupov -> 64 -> 64 -> 2 výstupy)
 function predict(w, x) {
   let a = x.map((v, i) => (v - w.mu[i]) / w.sd[i]);           // štandardizácia vstupov
   w.layers.forEach((L, k) => {
@@ -350,7 +323,7 @@ function predict(w, x) {
 <button class="go" id="go">Odhadnúť výsledok</button></div>
 <div class="res"><div id="out" class="card"><b>Výsledok sa zobrazí tu.</b><br><small>Upravte vstupy a stlačte „Odhadnúť výsledok“.</small></div></div></div>
 <section id="siet"><h2>Ako sieť funguje</h2>
-<p>Deväť vstupov → dve skryté vrstvy po 64 neurónoch (ReLU) → dva výstupy: pravdepodobnosť, že vyhrá kúpa, a očakávaný rozdiel majetku. Trénovaná algoritmom Adam na __NTR__ simulovaných scenároch, otestovaná na __NTE__ neviditeľných: presnosť <b>__ACC__ %</b> (základ __BASE__ %), Brierovo skóre __BRIER__, zhoda s presným modelom __AGR__ %. Šum v simulovaných cenách používa historickú volatilitu (byty __SDH__ %/rok, akcie __SDE__ %/rok), preto pravdepodobnosť odráža trhovú neistotu.</p>
+<p>Osem vstupov → dve skryté vrstvy po 64 neurónoch (ReLU) → dva výstupy: pravdepodobnosť, že vyhrá kúpa, a očakávaný rozdiel majetku. Trénovaná algoritmom Adam na __NTR__ simulovaných scenároch, otestovaná na __NTE__ neviditeľných: presnosť <b>__ACC__ %</b> (základ __BASE__ %), Brierovo skóre __BRIER__, zhoda s presným modelom __AGR__ %. Šum v simulovaných cenách používa historickú volatilitu (byty __SDH__ %/rok, akcie __SDE__ %/rok), preto pravdepodobnosť odráža trhovú neistotu.</p>
 <p>Rozdiel majetku sa učil na výsledku bez šumu: medián chyby __GM__ % ceny, v 90 % prípadov do __GP__ % ceny (≈ __GPE__ € pri byte za 280 000 €). Ak je pravdepodobnosť pod 50 %, ale rozdiel kladný, nejde o chybu – zisky z kúpy v dobrých scenároch môžu byť väčšie než straty v zlých.</p>
 <div class="chart"><canvas id="cal"></canvas></div><p class="read">Ak bodky sledujú diagonálu, sieť je kalibrovaná: keď tvrdí 70 %, kúpa naozaj vyhrá asi v 70 % prípadov.</p></section>
 <section id="kod"><h2>Kód</h2>
@@ -373,15 +346,15 @@ const D = __D__;
 const $ = id => document.getElementById(id);
 const eur = v => Math.round(v).toLocaleString('sk-SK') + ' €';
 $('go').onclick = () => {
-  const sk = 0, price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
+  const price = +$('price').value, dep = +$('dep').value, inc = +$('inc').value;
   const warn = [];
-  const buyCost = sk ? 0.006 : ($('u35').value === '1' ? 0.065 : 0.10);
+  const buyCost = $('u35').value === '1' ? 0.065 : 0.10;
   // úspory pokryjú akontáciu A náklady pri kúpe; zvyšok ceny je úver
   let ltv = 1 - (dep - buyCost*price) / price;
   if (ltv > 0.9) { warn.push('Vaše úspory sú pod 10 % akontácie plus poplatky; LTV bolo obmedzené na 90 %.'); ltv = 0.9; }
   if (ltv < 0.5) { warn.push('Akontácia presahuje 50 % ceny; LTV bolo obmedzené na 50 % (tréningový rozsah).'); ltv = 0.5; }
   const yrs = Math.min(30, Math.max(2, Math.round(+$('yrs').value)));
-  const x = [sk, yrs, ltv, +$('yld').value/100, buyCost, +$('hg').value/100, +$('rg').value/100, +$('eq').value/100, +$('rate').value/100];
+  const x = [yrs, ltv, +$('yld').value/100, buyCost, +$('hg').value/100, +$('rg').value/100, +$('eq').value/100, +$('rate').value/100];
   const r = predict(W, x);
   const term = 30, i = x[8]/12, n = term*12;
   const pay = price*ltv * (i/(1-Math.pow(1+i,-n)));
@@ -461,7 +434,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <tr><td>Inflácia</td><td>1950–2025</td><td>JST CPI / HICP (ECB)</td><td>–</td></tr>
 <tr><td>Dane a náklady</td><td>celé obdobie</td><td>dnešné pravidlá (AEAT, Junta de Andalucía)</td><td>Spätná aplikácia; nepravdivá pre roky pred 80. rokmi</td></tr></table></div>
 <details><summary>Predpoklady modelu – tabuľka (dane, náklady, sadzby)</summary>__ASSUMP__</details>
-<p>Podrobne je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. Správa sa venuje Španielsku, kde máme dlhý rad od roku 1950. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
+<p>Podrobne je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. Správa sa venuje Španielsku a Málage. Ceny pre samotnú Málagu existujú až od roku 2005, preto <b>dlhá história od roku 1950 používa celoštátne španielske dáta ako zástupcu Málagy</b>. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
 
 <section id="model"><h2>3 · Model <small>čo berie na vstupe a ako dospeje k odpovedi</small></h2>
 <p><b>Model „odhad z histórie“</b> (typ B zo zadania – sústava malých modelov + simulácia) pracuje len s dátami do roku XY:</p>
@@ -469,7 +442,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <li><b>Simulácia</b>: obe stratégie sa vypočítajú pre horizont H s týmito konštantnými hodnotami (rovnaký <code>simulate()</code>).</li>
 <li><b>Odpoveď</b>: „hypotéka“, ak majetok B &gt; A, inak „podnájom“.</li></ol>
 <p><b>Model s návratom k priemeru</b> je ten istý, ale polovica odhadu sa nahradí dlhodobým priemerom zo všetkých rokov do XY. <b>Pozor:</b> túto druhú verziu sme pridali až po prvom behu, keď sme videli, že čistá extrapolácia posledných 20 rokov zlyháva po boome – je to teda voľba spravená po pohľade na výsledky a hodnotí sa menej prísne než prvá.</p>
-<p><b>Neurónová sieť</b> (web, stránka <a href="advisor.html">Poradca</a>) dostane 9 vstupov (mesto, horizont, LTV, výnos z nájmu, náklady, očakávaný rast cien, nájmov, akcií, sadzba) a učí sa napodobniť presný model na simulovaných scenároch. Rozsahy vstupov sú široké (ceny −5 až 20 %, sadzby 1–20 %), takže pokrývajú aj vysokú infláciu 50.–90. rokov; na simulovaných scenároch sa s presným modelom zhoduje v __AGR__ % prípadov. Pri vyhodnotení na histórii dostane tie isté odhadnuté vstupy ako model „odhad z histórie“.</p></section>
+<p><b>Neurónová sieť</b> (web, stránka <a href="advisor.html">Poradca</a>) dostane 8 vstupov (horizont, LTV, výnos z nájmu, náklady, očakávaný rast cien, nájmov, akcií, sadzba) a učí sa napodobniť presný model na simulovaných scenároch. Rozsahy vstupov sú široké (ceny −5 až 20 %, sadzby 1–20 %), takže pokrývajú aj vysokú infláciu 50.–90. rokov; na simulovaných scenároch sa s presným modelom zhoduje v __AGR__ % prípadov. Pri vyhodnotení na histórii dostane tie isté odhadnuté vstupy ako model „odhad z histórie“.</p></section>
 
 <section id="overenie"><h2>4 · Vyhodnotenie na histórii <small>pre každý počiatočný rok XY: odpoveď modelu vs. skutočný víťaz</small></h2>
 <div class="chart"><canvas id="wfbar"></canvas></div>
@@ -486,7 +459,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <section id="dnes"><h2>5 · Čo by model poradil dnes <small>koniec roku 2025, Španielsko</small></h2>
 <p>Odhady z posledných 20 rokov: rast cien __HG__ %, rast nájmov __RG__ %, výnos akcií __EQ__ % ročne, výnos z nájmu __YL__ %, sadzba hypotéky __MR__ %.</p>
 <div class="tw"><table><tr><th>Horizont</th><th>Model: odhad z histórie</th><th>Neurónová sieť</th></tr>__TROWS__</table></div>
-<p class="cap">Výnos z nájmu 1,5 % (celoštátne dáta JST) je oveľa nižší než 5 %, s ktorými pracujú mestské stránky (ponukové nájmy v Málage). Preto je odpoveď „podnájom“ pre celoštátnu situáciu; pre vlastné vstupy použite <a href="advisor.html">Poradcu</a>. Vzdelávací model, nie finančné poradenstvo.</p></section>
+<p class="cap">Výnos z nájmu 1,5 % (celoštátne dáta JST) je oveľa nižší než 5 %, s ktorými pracuje stránka Málaga (ponukové nájmy v Málage). Preto je odpoveď „podnájom“ pre celoštátnu situáciu; pre vlastné vstupy použite <a href="advisor.html">Poradcu</a>. Vzdelávací model, nie finančné poradenstvo.</p></section>
 
 <section id="balik"><h2>6 · Jeden balík <small>spustiteľný bez inštalácie</small></h2>
 <p>Notebook <b>podnajom_alebo_hypoteka.ipynb</b> obsahuje všetko – dáta (vložené do buniek), kód modelu, váhy siete – a nepotrebuje žiadne stiahnutie ani inštaláciu knižníc (Google Colab má numpy a pandas). Vypočíta majetok oboch scenárov pre zvolený počiatočný rok, dá radu modelu pre zadanú situáciu a zopakuje vyhodnotenie z kapitoly 4.</p>
