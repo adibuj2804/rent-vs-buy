@@ -17,9 +17,15 @@ import model as M
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 rng = np.random.default_rng(42)
 
-GAP_SCALE = 1.5   # cieľ „rozdiel majetku“ sa orezáva na ±1,5× ceny a delí touto hodnotou
+GAP_SCALE = 3.0   # cieľ „rozdiel majetku“ sa orezáva na ±3× ceny a delí touto hodnotou
 FEATURES = ["city_SK", "years", "ltv", "gross_yield", "buy_cost", "house_growth",
             "rent_growth", "equity_return", "mortgage_rate"]
+
+
+# Rozsahy vstupov: široké, aby pokryli aj vysokú infláciu a sadzby 50.–90. rokov (nominálne hodnoty),
+# nielen roky 2005–2025. Rovnaké rozsahy používa vyhodnotenie na histórii (walkforward.py).
+RANGES = {"gross_yield": (0.01, 0.07), "house_growth": (-0.05, 0.20), "rent_growth": (0.0, 0.20),
+          "equity_return": (0.0, 0.20), "mortgage_rate": (0.01, 0.20)}
 
 
 # ---- 1. čo hovorí história o volatilite (pre šum na realizovaných priebehoch) -------------
@@ -38,12 +44,12 @@ def make(n):
     city = rng.integers(0, 2, n)                     # 0 = Španielsko/Málaga, 1 = Slovensko/Bratislava
     years = rng.integers(2, 31, n)
     ltv = rng.uniform(0.5, 0.9, n)
-    yld = rng.uniform(0.03, 0.07, n)
+    yld = rng.uniform(RANGES["gross_yield"][0], RANGES["gross_yield"][1], n)
     buy_cost = np.where(city == 0, rng.uniform(0.055, 0.13, n), rng.uniform(0.003, 0.02, n))
-    house_g = rng.uniform(-0.02, 0.08, n)
-    rent_g = np.clip(house_g * rng.uniform(0.3, 1.0, n) + rng.uniform(0, 0.02, n), 0, 0.06)
-    eq = rng.uniform(0.02, 0.10, n)
-    rate = rng.uniform(0.015, 0.07, n)
+    house_g = rng.uniform(*RANGES["house_growth"], n)
+    rent_g = np.clip(house_g * rng.uniform(0.3, 1.0, n) + rng.uniform(0, 0.02, n), *RANGES["rent_growth"])
+    eq = rng.uniform(*RANGES["equity_return"], n)
+    rate = rng.uniform(*RANGES["mortgage_rate"], n)
     X = np.c_[city, years, ltv, yld, buy_cost, house_g, rent_g, eq, rate]
 
     # realizovaný výsledok = očakávanie + šum, ktorý s horizontom klesá (sd/sqrt(roky))
@@ -142,7 +148,7 @@ if __name__ == "__main__":
                         "observed": float(y_win[cut:][k].mean()), "n": int(k.sum())})
     os.makedirs(os.path.join(ROOT, "site/model"), exist_ok=True)
     json.dump({
-        "features": FEATURES, "gapScale": GAP_SCALE, "mu": mu.tolist(), "sd": sd.tolist(),
+        "features": FEATURES, "gapScale": GAP_SCALE, "ranges": RANGES, "mu": mu.tolist(), "sd": sd.tolist(),
         "layers": [{"W": W.round(6).tolist(), "b": b.round(6).tolist()} for W, b in params],
         "metrics": {"holdout_accuracy": float(acc), "majority_baseline": float(base),
                     "brier": float(brier), "gap_mae_median": float(np.median(gap_err)), "gap_mae_p90": float(np.percentile(gap_err, 90)), "agreement_with_exact": float(agree),

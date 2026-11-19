@@ -12,7 +12,7 @@ wf_src = wf_src.replace("try:                                  # v notebooku sú
 assert "from model import" not in wf_src
 data_csv = rd("data/processed/spain_annual_1870_2025.csv")
 net = json.load(open(os.path.join(ROOT, "site/model/nn_weights.json")))
-net_min = json.dumps({k: net[k] for k in ("features", "gapScale", "mu", "sd", "layers")}, separators=(",", ":"))
+net_min = json.dumps({k: net[k] for k in ("features", "gapScale", "ranges", "mu", "sd", "layers")}, separators=(",", ":"))
 
 cells = []
 md = lambda t: cells.append({"cell_type": "markdown", "metadata": {}, "source": t.strip("\n").splitlines(True)})
@@ -65,7 +65,7 @@ print(f"{'horizont':>9}{'roky':>6}{'vždy hyp.':>11}{'vždy prenáj.':>14}{'odha
 for H, s in sm.items():
     print(f"{H:>7} r.{s['n_years']:>6}{s['always_buy']:>11.0%}{s['always_rent']:>14.0%}{s['estimate']:>8.0%}{s['mean_reversion']:>14.0%}{s['net']:>7.0%}")
 print()
-print("Sieť bola natrénovaná na rozsahoch z rokov 2005–2025; pre historické vstupy je väčšinou mimo nich (pozri správu).")""")
+print("Sieť dostane tie isté odhadnuté vstupy ako model „odhad z histórie“ (rozsahy vstupov pokrývajú aj vysokú infláciu).")""")
 cd("""# graf: skutočná výhoda hypotéky pre horizont 10 rokov a odpoveď modelu
 import matplotlib.pyplot as plt
 g = ev[ev.H == 10]

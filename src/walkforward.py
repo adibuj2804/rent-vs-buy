@@ -64,8 +64,8 @@ def advise_estimate(inp: dict, years: int, p=None) -> float:
 
 
 # ------------------------------------------------------------------ neurónová sieť (numpy)
-RANGES = {"gross_yield": (0.03, 0.07), "house_growth": (-0.02, 0.08), "rent_growth": (0.0, 0.06),
-          "equity_return": (0.02, 0.10), "mortgage_rate": (0.015, 0.07)}
+RANGES = {"gross_yield": (0.01, 0.07), "house_growth": (-0.05, 0.20), "rent_growth": (0.0, 0.20),
+          "equity_return": (0.0, 0.20), "mortgage_rate": (0.01, 0.20)}   # záloha; skutočné rozsahy sú v súbore s váhami
 
 
 def load_net(path_or_dict):
@@ -78,7 +78,7 @@ def advise_net(net: dict, inp: dict, years: int, p=None):
     p = p or SPAIN
     clipped = 0
     v = {}
-    for k, (lo, hi) in RANGES.items():
+    for k, (lo, hi) in net.get("ranges", RANGES).items():
         v[k] = min(max(inp[k], lo), hi)
         clipped += v[k] != inp[k]
     x = np.array([0, years, p.ltv, v["gross_yield"], p.buy_cost, v["house_growth"], v["rent_growth"],

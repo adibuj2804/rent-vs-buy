@@ -61,10 +61,12 @@ button.go{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:1
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:800px){.two{grid-template-columns:1fr}}
 .adv{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}@media(max-width:900px){.adv{grid-template-columns:1fr}}.adv .res{position:sticky;top:120px}
 .cap{color:var(--mut);font-size:.86rem}ol.steps{padding-left:1.2em}ol.steps li{margin:.5em 0}
+@media print{header.nav,nav.toc,footer,.btn,#wfh,.hero:before{display:none!important}.hero{background:none!important;color:var(--fg)!important;min-height:0!important;padding:0!important}.hero p,.hero h1{color:var(--fg)!important}main{max-width:none!important;padding:0 6mm!important}
+h2,h3{break-after:avoid}tr,.chart,.card,.note,.sum{break-inside:avoid}details>summary{font-weight:700}a{color:inherit;text-decoration:none}body{font-size:11pt}.tw{overflow:visible!important}#wfstrip>div{white-space:normal!important}}
 footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:.86rem}
 """
 
-NAV = [("index", "Úvod"), ("malaga", "Málaga"), ("bratislava", "Bratislava"), ("advisor", "Poradca"), ("sprava", "Správa a overenie")]
+NAV = [("index", "Úvod"), ("sprava", "Správa a overenie"), ("advisor", "Poradca"), ("malaga", "Málaga (doplnok)"), ("bratislava", "Bratislava (doplnok)")]
 
 
 def page(slug, title, body, script="", toc=None):
@@ -217,13 +219,8 @@ def city_page(city):
         d = res["tier2"]["decades"]
         fmt = lambda v: "n/a" if v is None else ("%+.0f %%" % (v * 100))
         rows = "".join("<tr><td>%s. roky</td><td>%s</td><td>%s</td></tr>" % (k, pct(v["winshare10"]), fmt(v["median10"])) for k, v in d.items())
-        tier2 = """<section id="historia"><h2>Dlhá história 1950–2025 <small>Úroveň 2 · Španielsko celoštátne · reálne hodnoty</small></h2>
-<div class="note"><b>Kvalita dát:</b> roky 2021–2025 nie sú z JST, ale predĺženie z ECB/BIS (akcie = svetový index). Úrovne cien bytov v Španielsku existujú až od roku 1971. Roky 1950–1970 databáza JST dopočítava z nájomných ukazovateľov a rady sú značne „skákavé“ (napr. +45 % a potom −23 %). Berte ich ako orientačné. Všetko je <b>reálne</b> (očistené o infláciu), s dnešnými daňami a poplatkami a sadzbou hypotéky = dlhodobý výnos štátnych dlhopisov + 1,5 p. b.</div>
-<div class="chart"><canvas id="t2"></canvas></div><p class="read">Každý bod = rok nákupu. Nad nulou vyhráva kúpa, pod nulou prenájom s investovaním.</p>
-<div class="two"><div class="tw"><table><tr><th>Desaťročie nákupu</th><th>Kúpa vyhráva (10 r.)</th><th>Medián výhody kúpy</th></tr>__ROWS__</table></div>
-<div><p>Kúpa sa výrazne oplácala v 50.–70. rokoch (záporné reálne sadzby, rýchly rast cien). Naopak, pri nákupe v 80. rokoch (vysoké sadzby) a pri boome a páde 2000. rokov sa neoplatila. Z __N__ začiatočných rokov vyhrala kúpa po 10 rokoch v __W10__, po 30 rokoch v __W30__.</p></div></div></section>""".replace("__ROWS__", rows).replace("__N__", str(res["tier2"]["n_starts"]["10"])).replace("__W10__", pct(res["tier2"]["winshare"]["10"])).replace("__W30__", pct(res["tier2"]["winshare"]["30"]))
+        tier2 = '<section id="historia"><h2>Dlhá história 1950–2025</h2><p>Dlhá história, stratégie a vyhodnotenie modelu pre každý počiatočný rok sú v <a href="sprava.html">Správe a overení</a> (jadro projektu).</p></section>'
         toc.append(("historia", "Dlhá história 1950+"))
-    toc += [("predpoklady", "Predpoklady"), ("kod", "Kód")]
 
     body = """<div class="hero" __BG__><span class="tag">__TAG__</span><h1>__NAME__: kúpa s hypotékou, alebo prenájom a investovanie?</h1>
 <p>__LEAD__ Pre každý možný mesiac nákupu porovnávame, aký majetok by domácnosť mala po 3–20 rokoch.</p></div>
@@ -238,9 +235,7 @@ def city_page(city):
 <p class="read">Kladná hodnota = kupujúci skončil bohatší. Jednotka: podiel kúpnej ceny (0,5 = 50 % ceny).</p></section>
 <section id="citlivost"><h2>Citlivosť <small>čo sa stane, keď zmeníme najneistejšie vstupy</small></h2>__SENS__</section>
 __TIER2__
-<section id="predpoklady"><h2>Predpoklady modelu</h2>__ASSUMP__</section>
-<section id="kod"><h2>Kód <small>všetko, čo za výsledkami stojí</small></h2>__CODE__</section>
-<p><a href="advisor.html">→ Vyskúšajte poradcu na vlastných číslach</a> · <a href="index.html#zdroje">Zdroje dát</a></p>"""
+<p><a href="sprava.html">→ Správa a overenie (jadro projektu)</a> · <a href="advisor.html">Poradca</a> · <a href="index.html#zdroje">Zdroje dát</a></p>"""
     body = body.replace("__BG__", bg(hero_img)).replace("__TAG__", "Hlavný prípad" if ES else "Kontrastný prípad").replace("__NAME__", name) \
         .replace("__LEAD__", lead).replace("__PHOTOS__", photos).replace("__ZHR__", zhrnutie).replace("__SCOPE__", scope) \
         .replace("__T__", tier_note).replace("__CARDS__", key_cards(city)).replace("__SENS__", sens_table(city)) \
@@ -283,9 +278,10 @@ def index_page():
 <div class="txt"><h1>Hypotéka, alebo prenájom a investovanie?</h1><p>Dátová analýza pre Málagu a Bratislavu: čo sa viac oplatí a za akých podmienok.</p></div></div>
 <section id="start"><h2>Začnite tu <small>stránky odporúčame prejsť v tomto poradí</small></h2>
 <div class="grid">
-<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>1 · Málaga →</b><br><small>Hlavný prípad. Vysoké náklady pri kúpe (≈ 10 %). Podrobný model 2005–2025 aj dlhá história 1950–2025.</small></div></a>
-<a class="card photo-card" href="bratislava.html"><img src="img/ba-most-snp.jpg" alt="Bratislava"><div><b>2 · Bratislava →</b><br><small>Kontrastný prípad. Takmer nulové náklady pri kúpe, ETF bez dane. Podrobný model 2008–2025.</small></div></a>
-<a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>3 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a></div></section>
+<a class="card photo-card" href="sprava.html"><img src="img/ma-malagueta.jpg" alt="Správa"><div><b>1 · Správa a overenie →</b><br><small>Jadro projektu: presné stratégie, dáta od 1950, model-poradca a jeho vyhodnotenie pre každý počiatočný rok. Notebook na stiahnutie.</small></div></a>
+<a class="card photo-card" href="advisor.html"><img src="img/ma-pobrezie.jpg" alt="Poradca"><div><b>2 · Poradca →</b><br><small>Zadajte vlastnú situáciu; neurónová sieť odhadne, ktorá možnosť vás s väčšou pravdepodobnosťou nechá bohatším.</small></div></a>
+<a class="card photo-card" href="malaga.html"><img src="img/ma-katedrala.jpg" alt="Málaga"><div><b>3 · Málaga (doplnok) →</b><br><small>Podrobný mesačný model 2005–2025 s oficiálnymi cenami MIVAU.</small></div></a>
+<a class="card photo-card" href="bratislava.html"><img src="img/ba-most-snp.jpg" alt="Bratislava"><div><b>4 · Bratislava (doplnok) →</b><br><small>Kontrastný prípad s cenami NBS, 2008–2025.</small></div></a></div></section>
 <section id="zistenia"><h2>Hlavné zistenia</h2>
 <div class="tw"><table><tr><th>Mesto</th><th>Kúpa vyhráva po 5 rokoch</th><th>Kúpa vyhráva po 10 rokoch</th><th>Čo za tým stojí</th></tr>
 <tr><td><b>Málaga</b> (Španielsko)</td><td>__E5__</td><td>__E10__</td><td>Nákupné náklady ≈ 10 %, dane z výnosov investícií, výdatný rast svetových akcií.</td></tr>
@@ -361,7 +357,7 @@ function predict(w, x) {
 <section id="kod"><h2>Kód</h2>
 <details open><summary>Predikcia v prehliadači (beží na tejto stránke)</summary><pre>__JS__</pre></details>
 __C1____C2__</section>
-<section><h2>Obmedzenia poradcu</h2><ul><li>Ignoruje vašu osobnú daňovú situáciu nad rámec pravidiel mesta, riziko straty práce a iné využitie peňazí.</li><li>Vstupy mimo tréningových rozsahov (LTV pod 50 % alebo nad 90 %, horizont nad 30 rokov) sa orežú a zobrazí sa upozornenie.</li><li>Dvadsať rokov lokálnej histórie nestačí na overenie siete proti skutočným výsledkom; overuje sa voči presnému modelu.</li></ul></section>"""
+<section><h2>Obmedzenia poradcu</h2><ul><li>Ignoruje vašu osobnú daňovú situáciu nad rámec pravidiel mesta, riziko straty práce a iné využitie peňazí.</li><li>Vstupy mimo tréningových rozsahov (LTV pod 50 % alebo nad 90 %, horizont nad 30 rokov) sa orežú a zobrazí sa upozornenie.</li><li>Sieť napodobňuje presný model; jej overenie proti skutočným výsledkom pre každý rok od 1950 je v <a href="sprava.html#overenie">Správe</a> – a nie je lepšie než tipovanie.</li></ul></section>"""
     body = body.replace("__BG__", bg("ba-most-snp.jpg")).replace("__RATE__", "%.2f" % (d["mortgage_rate_ES"] * 100)) \
         .replace("__HG__", "%.1f" % (d["house_growth_ES"] * 100)).replace("__RG__", "%.1f" % (d["rent_growth_ES"] * 100)).replace("__EQ__", "%.1f" % (d["equity_return"] * 100)) \
         .replace("__NTR__", "{:,}".format(m["n_train"]).replace(",", NB)).replace("__NTE__", "{:,}".format(m["n_test"]).replace(",", NB)) \
@@ -473,6 +469,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <tr><td>Sadzba hypotéky</td><td>1950–2025</td><td>JST dlhodobá sadzba (od 2021 ECB 10-r. výnos ES) + 1,5 p. b.</td><td>Hypotéky pred 90. rokmi neboli bežné; marža je predpoklad</td></tr>
 <tr><td>Inflácia</td><td>1950–2025</td><td>JST CPI / HICP (ECB)</td><td>–</td></tr>
 <tr><td>Dane a náklady</td><td>celé obdobie</td><td>dnešné pravidlá (AEAT, Junta de Andalucía)</td><td>Spätná aplikácia; nepravdivá pre roky pred 80. rokmi</td></tr></table></div>
+<details><summary>Predpoklady modelu – tabuľka (dane, náklady, sadzby)</summary>__ASSUMP__</details>
 <p>Podrobne, vrátane Slovenska, Málagy (MIVAU) a Bratislavy (NBS), je to v <a href="https://github.com/adibuj2804/rent-vs-buy/blob/main/data/SOURCES.md">SOURCES.md</a>. <b>Slovensko</b> je v rade od roku 2005, preto pre ťažisko tejto správy (dlhá história) používame Španielsko. Dáta stačia na to, aby pre každý začiatočný rok od 1950 (kým obdobie leží v dátach) mali stratégie jasného víťaza.</p></section>
 
 <section id="model"><h2>3 · Model <small>čo berie na vstupe a ako dospeje k odpovedi</small></h2>
@@ -481,7 +478,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <li><b>Simulácia</b>: obe stratégie sa vypočítajú pre horizont H s týmito konštantnými hodnotami (rovnaký <code>simulate()</code>).</li>
 <li><b>Odpoveď</b>: „hypotéka“, ak majetok B &gt; A, inak „podnájom“.</li></ol>
 <p><b>Model s návratom k priemeru</b> je ten istý, ale polovica odhadu sa nahradí dlhodobým priemerom zo všetkých rokov do XY. <b>Pozor:</b> túto druhú verziu sme pridali až po prvom behu, keď sme videli, že čistá extrapolácia posledných 20 rokov zlyháva po boome – je to teda voľba spravená po pohľade na výsledky a hodnotí sa menej prísne než prvá.</p>
-<p><b>Neurónová sieť</b> (web, stránka <a href="advisor.html">Poradca</a>) dostane 9 vstupov (mesto, horizont, LTV, výnos z nájmu, náklady, očakávaný rast cien, nájmov, akcií, sadzba) a učí sa napodobniť presný model na simulovaných scenároch. Je natrénovaná na rozsahoch z rokov 2005–2025 (ceny −2 až 8 %, sadzby 1,5–7 %), takže pre vysokoinflačné desaťročia mimo týchto rozsahov nie je spoľahlivá; jej výsledky v tabuľke nižšie tomu zodpovedajú.</p></section>
+<p><b>Neurónová sieť</b> (web, stránka <a href="advisor.html">Poradca</a>) dostane 9 vstupov (mesto, horizont, LTV, výnos z nájmu, náklady, očakávaný rast cien, nájmov, akcií, sadzba) a učí sa napodobniť presný model na simulovaných scenároch. Rozsahy vstupov sú široké (ceny −5 až 20 %, sadzby 1–20 %), takže pokrývajú aj vysokú infláciu 50.–90. rokov; na simulovaných scenároch sa s presným modelom zhoduje v __AGR__ % prípadov. Pri vyhodnotení na histórii dostane tie isté odhadnuté vstupy ako model „odhad z histórie“.</p></section>
 
 <section id="overenie"><h2>4 · Vyhodnotenie na histórii <small>pre každý počiatočný rok XY: odpoveď modelu vs. skutočný víťaz</small></h2>
 <div class="chart"><canvas id="wfbar"></canvas></div>
@@ -490,7 +487,7 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 <h3>Podiel rokov, v ktorých mal model pravdu</h3>
 <div class="tw"><table><tr><th>Horizont</th><th>Počiatočné roky</th><th>Vždy hypotéka</th><th>Vždy podnájom</th><th>Model: odhad z histórie</th><th>Model: s návratom k priemeru</th><th>Neurónová sieť</th></tr>__ROWS__</table></div>
 <div class="tw"><table><tr><th>Horizont</th><th>Obdobie nákupu</th><th>Rokov</th><th>Hypotéka vyhrala</th><th>Odhad</th><th>Návrat k priemeru</th></tr>__PER__</table></div>
-<div class="note"><b>Ako to čítať:</b> pravdu mal model v 55–67 % rokov pri 10 a 20 rokoch (základ ≈ 50 %); pri 30 rokoch je lepšia stratégia „vždy hypotéka“. Model zlyháva presne tam, kde sa mení režim: po inflácii 70. rokov a po boome 80.–90. rokov odhad z posledných 20 rokov prezerá zmenu. <b>Neurónová sieť</b> dopadla pri historických vstupoch horšie než tipovanie, pretože takmer všetky vstupy (nominálne sadzby a rast 10–18 %) sú mimo jej tréningových rozsahov – nie je určená na vysokoinflačné obdobia.</div>
+<div class="note"><b>Ako to čítať:</b> pravdu mal model v 55–67 % rokov pri 10 a 20 rokoch (základ ≈ 50 %); pri 30 rokoch je lepšia stratégia „vždy hypotéka“. Model zlyháva presne tam, kde sa mení režim: po inflácii 70. rokov a po boome 80.–90. rokov odhad z posledných 20 rokov prezerá zmenu. <b>Neurónová sieť</b> dopadla podobne ako odhad: s presným modelom sa zhoduje v __AGR__ %, no jej vstupy – odhady z posledných 20 rokov – nedokážu predpovedať, ktorý režim príde (inflácia, kríza). Chyba je teda v odhadoch vstupov, nie v sieti.</div>
 <p class="cap"><b>Čo číslo hovorí a čo nie.</b> Roky sa prekrývajú (okno 10 rokov z roku 1960 a 1961 má 9 spoločných rokov), preto nejde o 66 nezávislých pozorovaní, ale skôr o niekoľko. Rozdiely typu 55 % vs. 50 % nie sú štatisticky významné. Citlivosť na dĺžku okna odhadu (odhad z histórie, podiel správnych rokov): </p>
 <div class="tw"><table><tr><th>Okno odhadu</th><th>Horizont 10</th><th>Horizont 20</th><th>Horizont 30</th></tr>__SENS__</table></div>
 <p class="cap">Okno 20 rokov bolo zvolené vopred; ostatné sú ukázané len pre úplnosť.</p></section>
@@ -502,10 +499,10 @@ Model „odhad z histórie“ mal pravdu v __E10__ (10 r.), __E20__ (20 r.) a __
 
 <section id="balik"><h2>6 · Jeden balík <small>spustiteľný bez inštalácie</small></h2>
 <p>Notebook <b>podnajom_alebo_hypoteka.ipynb</b> obsahuje všetko – dáta (vložené do buniek), kód modelu, váhy siete – a nepotrebuje žiadne stiahnutie ani inštaláciu knižníc (Google Colab má numpy a pandas). Vypočíta majetok oboch scenárov pre zvolený počiatočný rok, dá radu modelu pre zadanú situáciu a zopakuje vyhodnotenie z kapitoly 4.</p>
-<p><a class="btn" href="https://colab.research.google.com/github/adibuj2804/rent-vs-buy/blob/main/notebooks/podnajom_alebo_hypoteka.ipynb">Otvoriť v Google Colab →</a> · <a href="podnajom_alebo_hypoteka.ipynb" download>Stiahnuť notebook</a></p>
+<p><a class="btn" href="https://colab.research.google.com/github/adibuj2804/rent-vs-buy/blob/main/notebooks/podnajom_alebo_hypoteka.ipynb">Otvoriť v Google Colab →</a> · <a href="podnajom_alebo_hypoteka.ipynb" download>Stiahnuť notebook</a> · <a href="sprava_podnajom_alebo_hypoteka.pdf" download>Stiahnuť správu (PDF)</a></p>
 <details><summary>walkforward.py – vyhodnotenie a modely (kód)</summary><pre>__WFCODE__</pre></details>
 <details><summary>model.py – výpočet oboch stratégií</summary><pre>__MODELCODE__</pre></details></section>"""
-    body = body.replace("__BG__", bg("ma-pobrezie.jpg")).replace("__ROWS__", rows).replace("__PER__", per).replace("__SENS__", sens_rows).replace("__TROWS__", trows) \
+    body = body.replace("__ASSUMP__", ASSUMP).replace("__AGR__", dec(nn["metrics"]["agreement_with_exact"] * 100)).replace("__BG__", bg("ma-pobrezie.jpg")).replace("__ROWS__", rows).replace("__PER__", per).replace("__SENS__", sens_rows).replace("__TROWS__", trows) \
         .replace("__WFCODE__", code("src/walkforward.py")).replace("__MODELCODE__", code("src/model.py")) \
         .replace("__BUY10__", p(wf[10]["always_buy"])).replace("__RENT10__", p(wf[10]["always_rent"])) \
         .replace("__E10__", p(wf[10]["estimate"])).replace("__E20__", p(wf[20]["estimate"])).replace("__E30__", p(wf[30]["estimate"])) \
@@ -524,9 +521,10 @@ function drawWF(H) {
     lines.map(([n,f]) => '<div><span style="display:inline-block;width:150px;font-size:.85rem">'+n+'</span>' + rows.map(r => { const [b, ok] = f(r); return cell(b, ok); }).join('') + '</div>').join('') + '</div>';
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('wfbar'), {type:'bar', data:{labels:rows.map(r=>r[0]), datasets:[{label:'Výhoda hypotéky (reálne)', data:rows.map(r=>r[6]), backgroundColor:rows.map(r=>r[6]>0?COL.buy:COL.rent)}]},
-    options:{plugins:{legend:{display:false}}, scales:{y:{title:{display:true,text:'Hypotéka − podnájom, podiel ceny'}}, x:{ticks:{maxTicksLimit:14}}}}});
+    options:{animation:false, plugins:{legend:{display:false}}, scales:{y:{title:{display:true,text:'Hypotéka − podnájom, podiel ceny'}}, x:{ticks:{maxTicksLimit:14}}}}});
 }
 document.getElementById('wfh').onchange = e => drawWF(e.target.value);
+if (location.search.includes('print')) document.querySelectorAll('details').forEach(d => { if (!d.querySelector('pre')) d.open = true; else d.remove(); });
 drawWF('10');
 """
     return page("sprava", "Správa a overenie", body, script, [("prehlad", "V skratke"), ("strategie", "Stratégie"), ("data", "Dáta"), ("model", "Model"), ("overenie", "Vyhodnotenie"), ("dnes", "Dnes"), ("balik", "Balík")])

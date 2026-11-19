@@ -19,5 +19,5 @@ Statický web + kód v Pythone, ktorý porovnáva „kúpu s hypotékou“ a „
 
 Opätovné zostavenie: `pip install -r requirements.txt`, potom v priečinku `src/` spustite `build_data.py`, `extend_spain.py`, `train_nn.py`, `export_results.py`, `build_site.py`, `make_notebook.py`.
 
-**Správa k zadaniu** (stratégie, dáta, model, vyhodnotenie): https://adibuj2804.github.io/rent-vs-buy/sprava.html · **Balík:** `notebooks/podnajom_alebo_hypoteka.ipynb` (otvoriť v Google Colab → Run all).
+**Správa k zadaniu** (stratégie, dáta, model, vyhodnotenie): https://adibuj2804.github.io/rent-vs-buy/sprava.html · **PDF správa:** `report/sprava_podnajom_alebo_hypoteka.pdf` (generuje sa z webu cez Chrome `--print-to-pdf` zo stránky `sprava.html?print=1`) · **Balík:** `notebooks/podnajom_alebo_hypoteka.ipynb` (otvoriť v Google Colab → Run all).
 Nejde o finančné poradenstvo.
